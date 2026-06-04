@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predicción de Parada de Máquina</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #0A0C0F;
+    --panel:   #111518;
+    --border:  #1E2530;
+    --rust:    #C0390A;
+    --fire:    #E84A0A;
+    --amber:   #F07820;
+    --copper:  #A05010;
+    --metal:   #607080;
+    --light:   #B0C0D0;
+    --text:    #D8E4EC;
+    --dim:     #60737F;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: #070A0D;
+    border-bottom: 2px solid var(--rust);
+    padding: 0 40px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .nav-logo {
+    font-size: 12px; font-weight: 900; color: var(--fire);
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 14px 28px 14px 0;
+    border-right: 1px solid #1E2530;
+    margin-right: 12px;
+  }
+  nav a {
+    color: var(--dim); text-decoration: none;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 14px 16px;
+    transition: color .15s;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+  }
+  nav a:hover { color: var(--fire); border-bottom-color: var(--fire); }
+
+  /* ── HERO ── */
+  .hero {
+    background: #070A0D;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    min-height: 480px;
+    display: flex;
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  }
+
+  /* metal grid background */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(200,80,10,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,80,10,.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* diagonal rust slash */
+  .hero-slash {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(105deg, var(--rust) 0%, var(--fire) 100%);
+    clip-path: polygon(0 0, 38% 0, 28% 100%, 0 100%);
+    opacity: .12;
+  }
+  .hero-slash2 {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--rust);
+    clip-path: polygon(0 0, 5px 0, 5px 100%, 0 100%);
+  }
+
+  .hero-content {
+    position: relative; z-index: 1;
+    padding: 80px 60px 100px;
+    max-width: 680px;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 900; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--fire);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block; width: 32px; height: 2px; background: var(--fire);
+  }
+
+  .hero h1 {
+    font-size: 70px; font-weight: 900; line-height: .95;
+    color: #fff; text-transform: uppercase;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--fire);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 15px; color: var(--dim); max-width: 480px;
+    border-left: 3px solid var(--rust);
+    padding-left: 16px;
+    margin-bottom: 40px;
+  }
+
+  .hero-stats {
+    display: flex; gap: 0;
+  }
+  .stat {
+    padding: 16px 28px 16px 0;
+    border-right: 1px solid #1E2530;
+    margin-right: 28px;
+  }
+  .stat:last-child { border-right: none; }
+  .stat .num {
+    font-size: 36px; font-weight: 900; color: var(--fire);
+    line-height: 1; letter-spacing: -1px;
+  }
+  .stat .lbl { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .hero-svg {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    display: flex; align-items: center;
+    padding-right: 60px;
+    opacity: .55;
+  }
+
+  /* ── SECTION ── */
+  section { max-width: 960px; margin: 0 auto; padding: 72px 32px; }
+
+  .sec-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 40px;
+  }
+  .sec-num {
+    font-size: 11px; font-weight: 900; letter-spacing: 3px;
+    color: var(--rust); text-transform: uppercase;
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    border-left: 2px solid var(--rust); padding-left: 8px;
+    min-height: 80px; display: flex; align-items: center;
+  }
+  .sec-head h2 {
+    font-size: 38px; font-weight: 900; text-transform: uppercase;
+    letter-spacing: -1px; color: #fff;
+    line-height: 1;
+  }
+  .sec-head h2 span { color: var(--fire); }
+
+  /* ── CARDS ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+
+  .blk {
+    background: var(--panel);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .blk::after {
+    content: '';
+    position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--rust), var(--fire));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s;
+  }
+  .blk:hover::after { transform: scaleX(1); }
+
+  .blk.span2 { grid-column: 1 / -1; }
+  .blk-label {
+    font-size: 12px; font-weight: 900; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--rust);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .blk-label::before { content:''; display:block; width:20px; height:2px; background:var(--rust); }
+  .blk h3 { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .blk p  { font-size: 13.5px; color: var(--dim); line-height: 1.6; }
+  code {
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    padding: 1px 7px; border-radius: 2px; font-size: 12px; color: var(--amber);
+  }
+
+  /* ── DIVIDER ── */
+  .cut {
+    height: 2px;
+    background: linear-gradient(90deg, var(--rust) 0%, transparent 60%);
+    margin: 0 32px;
+  }
+
+  /* ── DATASET TABS ── */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; gap: 0; }
+  .tab {
+    padding: 12px 24px; font-size: 11px; font-weight: 900;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color .15s, border-color .15s;
+  }
+  .tab.active { color: var(--fire); border-bottom-color: var(--fire); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .ds-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .badge {
+    background: transparent; border: 1px solid var(--border);
+    padding: 4px 12px; font-size: 12px; color: var(--dim);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+  .badge b { color: var(--text); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg); }
+  th {
+    padding: 9px 14px; text-align: left;
+    font-size: 10px; font-weight: 900; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--rust);
+    border-bottom: 1px solid var(--rust);
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--dim); vertical-align: top; }
+  td:first-child { font-family: monospace; color: var(--amber); font-size: 12px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── MODOS DE FALLO ── */
+  .fallos { display: flex; flex-direction: column; gap: 2px; }
+  .fallo {
+    display: flex; align-items: stretch;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%);
+  }
+  .fallo:hover { border-color: var(--rust); }
+  .fallo-bar { width: 5px; flex-shrink: 0; }
+  .fallo-inner {
+    display: flex; align-items: center;
+    flex: 1; padding: 18px 20px; gap: 20px;
+  }
+  .fallo-code { font-size: 18px; font-weight: 900; min-width: 56px; letter-spacing: 1px; }
+  .fallo-info { flex: 1; }
+  .fallo-name { font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .fallo-desc { font-size: 12.5px; color: var(--dim); }
+  .fallo-n { font-size: 22px; font-weight: 900; min-width: 80px; text-align: right; letter-spacing: -1px; }
+  .fallo-nlbl { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; text-align: right; }
+
+  /* ── STACKING ── */
+  .stack-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 40px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  }
+  .stack-inner { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .base-row { display: flex; gap: 8px; }
+  .bbox {
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 12px 24px; font-size: 13px; font-weight: 800;
+    color: var(--fire); text-transform: uppercase; letter-spacing: 1px;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .arr {
+    display: flex; flex-direction: column; align-items: center;
+    margin: 10px 0; gap: 0;
+  }
+  .arr-line { width: 2px; height: 20px; background: var(--rust); }
+  .arr-head {
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--rust);
+  }
+  .meta-box {
+    background: linear-gradient(105deg, var(--rust), var(--fire));
+    padding: 14px 48px; font-size: 15px; font-weight: 900;
+    color: #fff; text-transform: uppercase; letter-spacing: 2px;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  }
+  .stack-note { font-size: 11px; color: var(--dim); margin-top: 16px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .model-pills { display: flex; gap: 2px; margin-bottom: 24px; }
+  .mpill {
+    flex: 1; padding: 20px;
+    background: var(--panel); border: 1px solid var(--border);
+    position: relative;
+  }
+  .mpill::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .mpill.red::before  { background: #E63946; }
+  .mpill.green::before { background: #52B788; }
+  .mpill h3 { font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .mpill.red h3   { color: #E63946; }
+  .mpill.green h3 { color: #52B788; }
+  .mpill p { font-size: 13px; color: var(--dim); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #070A0D;
+    border-top: 2px solid var(--rust);
+    padding: 28px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--dim);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  footer strong { color: var(--fire); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">⬡ Parada de Máquina</div>
+  <a href="#problema">Problema</a>
+  <a href="#datos">Datos</a>
+  <a href="#fallos">Fallos</a>
+  <a href="#modelado">Modelado</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-slash"></div>
+  <div class="hero-slash2"></div>
+  <div class="hero::before"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Proyecto ML · Bootcamp Data Science</div>
+    <h1>Predicción<br>de <em>Parada</em>de Máquina</h1>
+    <p class="hero-desc">Mantenimiento predictivo industrial. Clasificación binaria sobre señales de sensores de proceso para anticipar el fallo antes de que ocurra.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="num">10K</div><div class="lbl">Registros</div></div>
+      <div class="stat"><div class="num">3.4%</div><div class="lbl">Tasa de fallo</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Modos de fallo</div></div>
+    </div>
+  </div>
+
+  <div class="hero-svg">
+    <svg width="300" height="300" viewBox="0 0 300 300">
+      <!-- outer rings -->
+      <circle cx="150" cy="150" r="130" stroke="#C0390A" stroke-width="1" fill="none" stroke-dasharray="10 6" opacity=".3"/>
+      <circle cx="150" cy="150" r="100" stroke="#E84A0A" stroke-width="1.5" fill="none" stroke-dasharray="6 8" opacity=".2"/>
+      <!-- gear teeth -->
+      <g opacity=".5">
+        <path d="M150 20 L160 42 L180 30 L178 52 L200 48 L190 68 L212 72 L195 86 L210 100 L190 104 L198 122 L178 118 L178 140 L158 128 L150 150 L142 128 L122 140 L122 118 L102 122 L110 104 L90 100 L105 86 L88 72 L110 68 L100 48 L122 52 L120 30 L140 42 Z"
+          fill="none" stroke="#C0390A" stroke-width="2"/>
+      </g>
+      <!-- center bolt -->
+      <circle cx="150" cy="150" r="42" fill="#0A0C0F" stroke="#E84A0A" stroke-width="2.5"/>
+      <circle cx="150" cy="150" r="18" fill="none" stroke="#E84A0A" stroke-width="1.5"/>
+      <line x1="118" y1="118" x2="182" y2="182" stroke="#E84A0A" stroke-width="2" opacity=".6"/>
+      <line x1="182" y1="118" x2="118" y2="182" stroke="#E84A0A" stroke-width="2" opacity=".6"/>
+      <!-- sensor wave -->
+      <path d="M30 220 Q50 190 70 220 Q90 250 110 220 Q130 190 150 220 Q170 250 190 220 Q210 190 230 220" stroke="#F07820" stroke-width="2.5" fill="none" opacity=".6"/>
+      <!-- warning flash -->
+      <path d="M240 60 L225 85 L235 85 L220 110 L250 80 L240 80 Z" fill="#E84A0A" opacity=".7"/>
+      <!-- cross-hairs -->
+      <line x1="150" y1="20" x2="150" y2="50" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
+      <line x1="150" y1="250" x2="150" y2="280" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
+      <line x1="20" y1="150" x2="50" y2="150" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
+      <line x1="250" y1="150" x2="280" y2="150" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══ PROBLEMA ═══ -->
+<section id="problema">
+  <div class="sec-head">
+    <div class="sec-num">01</div>
+    <h2>El <span>problema</span></h2>
+  </div>
+  <div class="grid2" style="gap:2px">
+    <div class="blk">
+      <div class="blk-label">Contexto</div>
+      <h3>Coste del fallo</h3>
+      <p>Las averías no planificadas en entornos industriales generan paradas de producción costosas y reparaciones de emergencia. El tiempo de inactividad no previsto puede suponer miles de euros por hora.</p>
+    </div>
+    <div class="blk">
+      <div class="blk-label">Enfoque</div>
+      <h3>Mantenimiento predictivo</h3>
+      <p>En lugar de esperar al fallo o intervenir a intervalos fijos, el mantenimiento predictivo <em>anticipa</em> el fallo usando datos en tiempo real de los sensores del proceso.</p>
+    </div>
+    <div class="blk span2">
+      <div class="blk-label">Objetivo técnico</div>
+      <h3>Clasificación binaria</h3>
+      <p>Entrenar un clasificador binario que prediga si una máquina va a fallar (<code>Machine failure = 1</code>) en función de variables operacionales: temperatura del aire y del proceso, velocidad de rotación, par motor y desgaste de herramienta. La variable objetivo está fuertemente desbalanceada: solo el <strong style="color:var(--fire)">3,4 %</strong> de los registros corresponden a un fallo.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- ═══ DATOS ═══ -->
+<section id="datos">
+  <div class="sec-head">
+    <div class="sec-num">02</div>
+    <h2>Los <span>datos</span></h2>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)">AI4I 2020 — Principal</div>
+    <div class="tab" onclick="switchTab(1)">CNC Mill Tool Wear</div>
+  </div>
+
+  <div class="tab-panel active" id="tab0">
+    <div class="ds-badges">
+      <div class="badge">Fuente: <b>UCI ML Repository</b></div>
+      <div class="badge">Registros: <b>10 000</b></div>
+      <div class="badge">Variables: <b>14</b></div>
+      <div class="badge">Fallos: <b>339 (3,4 %)</b></div>
+      <div class="badge">Nulos: <b>ninguno</b></div>
+    </div>
+    <table>
+      <thead><tr><th>Variable</th><th>Tipo</th><th>Rango</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Type</td><td>Categórica</td><td>L / M / H</td><td>Calidad del producto: Low 60 % · Medium 30 % · High 10 %</td></tr>
+        <tr><td>Air temperature [K]</td><td>Numérica</td><td>295–305 K</td><td>Temperatura del aire — media 300 K, σ = 2 K</td></tr>
+        <tr><td>Process temperature [K]</td><td>Numérica</td><td>306–314 K</td><td>Temperatura del proceso — ≈ aire + 10 K, σ = 1,5 K</td></tr>
+        <tr><td>Rotational speed [rpm]</td><td>Numérica</td><td>1168–2886</td><td>Velocidad de rotación — media 1 539 rpm</td></tr>
+        <tr><td>Torque [Nm]</td><td>Numérica</td><td>3,8–76,6</td><td>Par motor — media 40 Nm, σ = 10 Nm</td></tr>
+        <tr><td>Tool wear [min]</td><td>Numérica</td><td>0–253 min</td><td>Minutos acumulados de uso de la herramienta</td></tr>
+        <tr><td>Machine failure</td><td>Binaria</td><td>0 / 1</td><td>Etiqueta objetivo — 1 si hay fallo por cualquier causa (339 casos)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--copper);margin-top:14px;letter-spacing:.5px">▸ Distribución por tipo: L → 3,9 % fallos · M → 2,8 % · H → 2,1 %</p>
+  </div>
+
+  <div class="tab-panel" id="tab1">
+    <div class="ds-badges">
+      <div class="badge">Fuente: <b>Kaggle</b></div>
+      <div class="badge">Registros: <b>5 287</b></div>
+      <div class="badge">Variables: <b>27</b></div>
+      <div class="badge">Experimentos: <b>18</b></div>
+      <div class="badge">Worn: <b>34 %</b></div>
+    </div>
+    <table>
+      <thead><tr><th>Variable</th><th>Valores</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Material</td><td>cast iron / wax</td><td>Material mecanizado en el experimento</td></tr>
+        <tr><td>Feed rate [mm/rev]</td><td>0,5 / 1,0 / 2,0</td><td>Velocidad de avance de la herramienta</td></tr>
+        <tr><td>Clamp pressure [bar]</td><td>1 / 4 / 6</td><td>Presión de sujeción de la pieza</td></tr>
+        <tr><td>Eje X — 10 señales</td><td>—</td><td>Posición, velocidad, aceleración (actual y comando), corriente, tensión DC y de salida</td></tr>
+        <tr><td>Eje Y / Z</td><td>—</td><td>Posición, velocidad, corriente</td></tr>
+        <tr><td>Husillo S</td><td>—</td><td>Posición, velocidad, aceleración, corriente, tensión de salida</td></tr>
+        <tr><td>Tool_condition</td><td>unworn / worn</td><td>Estado de la herramienta — objetivo del modelo (66 % unworn / 34 % worn)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- ═══ MODOS DE FALLO ═══ -->
+<section id="fallos">
+  <div class="sec-head">
+    <div class="sec-num">03</div>
+    <h2>Modos de <span>fallo</span></h2>
+  </div>
+
+  <p style="font-size:13px;color:var(--dim);margin-bottom:28px;border-left:2px solid var(--rust);padding-left:14px;max-width:600px">
+    Cinco causas de fallo independientes determinadas por reglas físicas. Si alguna se activa, <code>Machine failure = 1</code>.
+  </p>
+
+  <div class="fallos">
+    <div class="fallo"><div class="fallo-bar" style="background:#00B4D8"></div>
+      <div class="fallo-inner">
+        <div class="fallo-code" style="color:#00B4D8">TWF</div>
+        <div class="fallo-info">
+          <div class="fallo-name">Tool Wear Failure — Desgaste de herramienta</div>
+          <div class="fallo-desc">Fallo al alcanzar umbral de desgaste 200–240 min, asignado según tipo de producto</div>
+        </div>
+        <div><div class="fallo-n" style="color:#00B4D8">46</div><div class="fallo-nlbl">casos</div></div>
+      </div>
+    </div>
+    <div class="fallo"><div class="fallo-bar" style="background:#F4A261"></div>
+      <div class="fallo-inner">
+        <div class="fallo-code" style="color:#F4A261">HDF</div>
+        <div class="fallo-info">
+          <div class="fallo-name">Heat Dissipation Failure — Disipación de calor</div>
+          <div class="fallo-desc">ΔT proceso–aire &lt; 8,6 K  y  velocidad de rotación &lt; 1 380 rpm de forma simultánea</div>
+        </div>
+        <div><div class="fallo-n" style="color:#F4A261">115</div><div class="fallo-nlbl">casos</div></div>
+      </div>
+    </div>
+    <div class="fallo"><div class="fallo-bar" style="background:#E63946"></div>
+      <div class="fallo-inner">
+        <div class="fallo-code" style="color:#E63946">PWF</div>
+        <div class="fallo-info">
+          <div class="fallo-name">Power Failure — Fallo por potencia</div>
+          <div class="fallo-desc">Potencia (par × vel. angular) fuera del rango 3 500–9 000 W</div>
+        </div>
+        <div><div class="fallo-n" style="color:#E63946">95</div><div class="fallo-nlbl">casos</div></div>
+      </div>
+    </div>
+    <div class="fallo"><div class="fallo-bar" style="background:#52B788"></div>
+      <div class="fallo-inner">
+        <div class="fallo-code" style="color:#52B788">OSF</div>
+        <div class="fallo-info">
+          <div class="fallo-name">Overstrain Failure — Sobreesfuerzo</div>
+          <div class="fallo-desc">Desgaste × Par supera umbral por tipo: L 11 000 · M 12 000 · H 13 000 Nm·min</div>
+        </div>
+        <div><div class="fallo-n" style="color:#52B788">98</div><div class="fallo-nlbl">casos</div></div>
+      </div>
+    </div>
+    <div class="fallo"><div class="fallo-bar" style="background:#607080"></div>
+      <div class="fallo-inner">
+        <div class="fallo-code" style="color:#607080">RNF</div>
+        <div class="fallo-info">
+          <div class="fallo-name">Random Failure — Fallo aleatorio</div>
+          <div class="fallo-desc">Probabilidad fija del 0,1 % independiente del estado del proceso</div>
+        </div>
+        <div><div class="fallo-n" style="color:#607080">19</div><div class="fallo-nlbl">casos</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- ═══ MODELADO ═══ -->
+<section id="modelado">
+  <div class="sec-head">
+    <div class="sec-num">04</div>
+    <h2>Enfoque de <span>modelado</span></h2>
+  </div>
+
+  <div class="model-pills">
+    <div class="mpill red" style="flex:2">
+      <h3>Desbalanceo severo de clases</h3>
+      <p>Solo el <strong style="color:#E63946">3,4 %</strong> de los registros corresponde a un fallo (<code>Machine failure = 1</code>). El 96,6 % restante son operaciones normales. Esto significa que un clasificador naive que prediga siempre "sin fallo" alcanzaría una accuracy del 96,6 % sin haber aprendido nada útil.</p>
+      <p style="margin-top:10px">Este desbalanceo tiene consecuencias directas sobre el entrenamiento: los algoritmos tienden a ignorar la clase minoritaria al optimizar métricas globales como la accuracy. En un contexto industrial, esto es especialmente peligroso — <strong style="color:#E63946">el coste de no detectar un fallo real es mucho mayor que el de generar una falsa alarma</strong>.</p>
+      <p style="margin-top:10px">El desbalanceo debe abordarse explícitamente, tanto en la elección del algoritmo y sus hiperparámetros como en la métrica de evaluación utilizada para comparar modelos.</p>
+    </div>
+    <div class="mpill green">
+      <h3>Métrica: Recall</h3>
+      <p>Un fallo no detectado (falso negativo) paraliza la producción. Una falsa alarma (falso positivo) solo genera una revisión innecesaria. El diseño prioriza <strong style="color:#52B788">minimizar los falsos negativos</strong>.</p>
+      <p style="margin-top:10px">La accuracy no es una métrica válida en este problema. Se utilizarán Recall, F1, AUC-ROC y la curva Precision-Recall para evaluar los modelos.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<section>
+  <div style="background:var(--panel);border:1px solid var(--border);padding:48px 40px;position:relative;overflow:hidden;clip-path:polygon(0 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%)">
+    <div style="position:absolute;top:0;left:0;width:6px;height:100%;background:linear-gradient(to bottom,var(--rust),var(--fire))"></div>
+    <div style="font-size:14px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--rust);margin-bottom:24px;display:flex;align-items:center;gap:12px"><span style="display:block;width:28px;height:2px;background:var(--rust)"></span>Mantenimiento predictivo</div>
+    <div style="font-size:clamp(36px, 5vw, 56px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:-1px;line-height:1.05">Un fallo detectado<br> a tiempo<br><em style="font-style:normal;color:var(--fire)">vale más</em><br> que mil reportes.<br><br></div>
+  </div>
+</section>
+
+<footer>
+  <div><strong>Parada de Máquina</strong> — Proyecto ML Individual<div style="margin-top:6px;font-size:13px;color:var(--dim);letter-spacing:.5px">Python · scikit-learn · LightGBM · XGBoost · pandas · matplotlib · seaborn<br></div></div>
+  <span>Bootcamp Data Science · 2026<br><br></span>
+</footer>
+
+<script>
+  function switchTab(i) {
+    document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+    document.querySelectorAll('.tab-panel').forEach((p,j) => p.classList.toggle('active', i===j));
+  }
+</script>
+</body>
+</html>
