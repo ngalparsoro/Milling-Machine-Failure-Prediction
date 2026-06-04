@@ -528,17 +528,63 @@
     <h2>Enfoque de <span>modelado</span></h2>
   </div>
 
-  <div class="model-pills">
-    <div class="mpill red" style="flex:2">
-      <h3>Desbalanceo severo de clases</h3>
-      <p>Solo el <strong style="color:#E63946">3,4 %</strong> de los registros corresponde a un fallo (<code>Machine failure = 1</code>). El 96,6 % restante son operaciones normales. Esto significa que un clasificador naive que prediga siempre "sin fallo" alcanzaría una accuracy del 96,6 % sin haber aprendido nada útil.</p>
-      <p style="margin-top:10px">Este desbalanceo tiene consecuencias directas sobre el entrenamiento: los algoritmos tienden a ignorar la clase minoritaria al optimizar métricas globales como la accuracy. En un contexto industrial, esto es especialmente peligroso — <strong style="color:#E63946">el coste de no detectar un fallo real es mucho mayor que el de generar una falsa alarma</strong>.</p>
-      <p style="margin-top:10px">El desbalanceo debe abordarse explícitamente, tanto en la elección del algoritmo y sus hiperparámetros como en la métrica de evaluación utilizada para comparar modelos.</p>
+  <!-- Imbalance bar -->
+  <div style="background:var(--panel);border:1px solid var(--border);padding:24px 28px;margin-bottom:2px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+      <span style="font-size:10px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--rust)">Desbalanceo de clases</span>
+      <span style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">10 000 registros</span>
     </div>
-    <div class="mpill green">
-      <h3>Métrica: Recall</h3>
-      <p>Un fallo no detectado (falso negativo) paraliza la producción. Una falsa alarma (falso positivo) solo genera una revisión innecesaria. El diseño prioriza <strong style="color:#52B788">minimizar los falsos negativos</strong>.</p>
-      <p style="margin-top:10px">La accuracy no es una métrica válida en este problema. Se utilizarán Recall, F1, AUC-ROC y la curva Precision-Recall para evaluar los modelos.</p>
+    <div style="display:flex;height:32px;border-radius:1px;overflow:hidden;gap:2px">
+      <div style="flex:96.6;background:rgba(96,112,128,0.25);border:1px solid var(--border);display:flex;align-items:center;padding:0 14px">
+        <span style="font-size:11px;font-weight:900;color:var(--metal);letter-spacing:1px">SIN FALLO &nbsp;·&nbsp; 96,6 %</span>
+      </div>
+      <div style="flex:3.4;background:rgba(232,74,10,0.2);border:1px solid var(--rust);display:flex;align-items:center;justify-content:center">
+        <span style="font-size:11px;font-weight:900;color:var(--fire)">3,4 %</span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <span style="font-size:11px;color:var(--dim)">Un clasificador naive alcanza <strong style="color:var(--metal)">96,6 % accuracy</strong> sin aprender nada útil</span>
+      <span style="font-size:11px;color:var(--fire);font-weight:800">→ accuracy no es válida</span>
+    </div>
+  </div>
+
+  <!-- FN vs FP cost -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px">
+    <div style="background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.4);padding:20px 24px;display:flex;gap:18px;align-items:center">
+      <div style="font-size:36px;line-height:1">⚠️</div>
+      <div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#E63946;margin-bottom:4px">Falso Negativo</div>
+        <div style="font-size:13px;font-weight:800;color:#fff">Fallo no detectado</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:2px">Parada no planificada · coste alto</div>
+      </div>
+    </div>
+    <div style="background:rgba(82,183,136,0.06);border:1px solid rgba(82,183,136,0.25);padding:20px 24px;display:flex;gap:18px;align-items:center">
+      <div style="font-size:36px;line-height:1">🔔</div>
+      <div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#52B788;margin-bottom:4px">Falso Positivo</div>
+        <div style="font-size:13px;font-weight:800;color:#fff">Alarma innecesaria</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:2px">Revisión preventiva · coste bajo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics row -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px">
+    <div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid #52B788;padding:18px 20px">
+      <div style="font-size:22px;font-weight:900;color:#52B788;letter-spacing:-1px">Recall</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">Métrica principal — detectar todos los fallos</div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--fire);padding:18px 20px">
+      <div style="font-size:22px;font-weight:900;color:var(--fire);letter-spacing:-1px">F1</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">Balance precision–recall</div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--amber);padding:18px 20px">
+      <div style="font-size:22px;font-weight:900;color:var(--amber);letter-spacing:-1px">AUC-ROC</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">Discriminación global del modelo</div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--metal);padding:18px 20px">
+      <div style="font-size:22px;font-weight:900;color:var(--metal);letter-spacing:-1px">PR Curve</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">Clave en clases desbalanceadas</div>
     </div>
   </div>
 </section>
