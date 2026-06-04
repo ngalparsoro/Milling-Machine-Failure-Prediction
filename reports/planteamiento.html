@@ -140,11 +140,18 @@
   }
   .stat .lbl { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
-  .hero-svg {
+  .hero-img {
     position: absolute; right: 0; top: 0; bottom: 0;
-    display: flex; align-items: center;
-    padding-right: 60px;
-    opacity: .55;
+    width: 55%;
+    pointer-events: none;
+  }
+  .hero-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center right;
+    display: block;
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.85) 60%, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.85) 60%, #000 100%);
   }
 
   /* ── SECTION ── */
@@ -355,31 +362,8 @@
     </div>
   </div>
 
-  <div class="hero-svg">
-    <svg width="300" height="300" viewBox="0 0 300 300">
-      <!-- outer rings -->
-      <circle cx="150" cy="150" r="130" stroke="#C0390A" stroke-width="1" fill="none" stroke-dasharray="10 6" opacity=".3"/>
-      <circle cx="150" cy="150" r="100" stroke="#E84A0A" stroke-width="1.5" fill="none" stroke-dasharray="6 8" opacity=".2"/>
-      <!-- gear teeth -->
-      <g opacity=".5">
-        <path d="M150 20 L160 42 L180 30 L178 52 L200 48 L190 68 L212 72 L195 86 L210 100 L190 104 L198 122 L178 118 L178 140 L158 128 L150 150 L142 128 L122 140 L122 118 L102 122 L110 104 L90 100 L105 86 L88 72 L110 68 L100 48 L122 52 L120 30 L140 42 Z"
-          fill="none" stroke="#C0390A" stroke-width="2"/>
-      </g>
-      <!-- center bolt -->
-      <circle cx="150" cy="150" r="42" fill="#0A0C0F" stroke="#E84A0A" stroke-width="2.5"/>
-      <circle cx="150" cy="150" r="18" fill="none" stroke="#E84A0A" stroke-width="1.5"/>
-      <line x1="118" y1="118" x2="182" y2="182" stroke="#E84A0A" stroke-width="2" opacity=".6"/>
-      <line x1="182" y1="118" x2="118" y2="182" stroke="#E84A0A" stroke-width="2" opacity=".6"/>
-      <!-- sensor wave -->
-      <path d="M30 220 Q50 190 70 220 Q90 250 110 220 Q130 190 150 220 Q170 250 190 220 Q210 190 230 220" stroke="#F07820" stroke-width="2.5" fill="none" opacity=".6"/>
-      <!-- warning flash -->
-      <path d="M240 60 L225 85 L235 85 L220 110 L250 80 L240 80 Z" fill="#E84A0A" opacity=".7"/>
-      <!-- cross-hairs -->
-      <line x1="150" y1="20" x2="150" y2="50" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
-      <line x1="150" y1="250" x2="150" y2="280" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
-      <line x1="20" y1="150" x2="50" y2="150" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
-      <line x1="250" y1="150" x2="280" y2="150" stroke="#C0390A" stroke-width="1.5" opacity=".4"/>
-    </svg>
+  <div class="hero-img">
+    <img src="hero-machine.jpg" alt="Máquina fresadora con alerta de fallo predicho">
   </div>
 </div>
 
