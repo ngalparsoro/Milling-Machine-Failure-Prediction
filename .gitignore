@@ -1,0 +1,14 @@
+# Datos grandes (mantener solo local)
+data/processed/
+data/raw/kit_extracted/
+data/raw/tec_extracted/
+data/raw/cnc_extracted/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Entornos
+.env
+*.egg-info/

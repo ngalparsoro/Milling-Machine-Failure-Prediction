@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predicción de Fallos — Presentación</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #0A0C0F;
+    --panel:   #111518;
+    --border:  #1E2530;
+    --rust:    #C0390A;
+    --fire:    #E84A0A;
+    --amber:   #F07820;
+    --copper:  #A05010;
+    --metal:   #607080;
+    --light:   #B0C0D0;
+    --text:    #D8E4EC;
+    --dim:     #60737F;
+    --green:   #52B788;
+    --red:     #E63946;
+    --blue:    #00B4D8;
+    --violet:  #8E7BE8;
+    --teal:    #2EC4B6;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow: hidden;
+  }
+
+  /* metal grid background on every slide */
+  .deck::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(200,80,10,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,80,10,.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* ── SLIDE SYSTEM ── */
+  .slide {
+    position: fixed; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 64px 80px 88px;
+    opacity: 0;
+    transition: opacity .35s ease;
+    z-index: 1;
+    overflow-y: auto;
+  }
+  .slide.active { display: flex; opacity: 1; }
+
+  /* narrower canvas: content column centered with generous side margins */
+  .slide { padding-left: max(72px, calc((100% - 1000px) / 2)); padding-right: max(72px, calc((100% - 1000px) / 2)); }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 900; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--fire);
+    margin-bottom: 18px;
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(232,74,10,.12); border: 1px solid rgba(232,74,10,.4);
+    padding: 6px 16px 6px 12px; width: fit-content; max-width: fit-content;
+    clip-path: polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  }
+  .eyebrow::before { content:''; display:block; width:24px; height:2px; background:var(--fire); }
+
+  h1 {
+    font-size: 64px; font-weight: 900; line-height: .98;
+    color: #fff; text-transform: uppercase; letter-spacing: -2px;
+  }
+  h1 em { font-style: normal; color: var(--fire); display: block; }
+
+  h2 {
+    font-size: 42px; font-weight: 900; text-transform: uppercase;
+    letter-spacing: -1px; color: #fff; line-height: 1; margin-bottom: 28px;
+  }
+  h2 span { color: var(--fire); }
+
+  .lead { font-size: 19px; color: var(--light); max-width: 760px; line-height: 1.55; }
+  .sub  { font-size: 15px; color: var(--dim); max-width: 720px; }
+
+  /* ── HERO (slide 1) ── */
+  .hero-img {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 52%;
+    pointer-events: none; z-index: -1;
+  }
+  .hero-img img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center right;
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,.4) 25%, rgba(0,0,0,.8) 60%, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,.4) 25%, rgba(0,0,0,.8) 60%, #000 100%);
+  }
+  .hero-slash {
+    position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(105deg, var(--rust) 0%, var(--fire) 100%);
+    clip-path: polygon(0 0, 38% 0, 28% 100%, 0 100%); opacity: .12;
+  }
+
+  /* ── CARDS / GRIDS ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; }
+
+  .blk {
+    background: var(--panel); padding: 26px; border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .blk::after {
+    content:''; position: absolute; top:0; left:0; width:100%; height:3px;
+    background: linear-gradient(90deg, var(--rust), var(--fire));
+  }
+  .blk.bar-blue::after   { background: var(--blue); }
+  .blk.bar-green::after  { background: var(--green); }
+  .blk.bar-fire::after   { background: linear-gradient(90deg, var(--rust), var(--fire)); }
+  .blk.bar-violet::after { background: var(--violet); }
+  .blk.bar-teal::after   { background: var(--teal); }
+  .blk.bar-amber::after  { background: var(--amber); }
+  .blk-label {
+    font-size: 11px; font-weight: 900; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--fire);
+    margin-bottom: 12px; display: inline-flex; align-items: center;
+    padding: 4px 12px; border: 1px solid currentColor;
+    background: rgba(255,255,255,.05);
+    clip-path: polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+  }
+  /* varied label colours across cards in a grid */
+  .grid2 > .blk:nth-child(4n+1) .blk-label,
+  .grid3 > .blk:nth-child(4n+1) .blk-label,
+  .grid4 > .blk:nth-child(4n+1) .blk-label { color: var(--blue); }
+  .grid2 > .blk:nth-child(4n+2) .blk-label,
+  .grid3 > .blk:nth-child(4n+2) .blk-label,
+  .grid4 > .blk:nth-child(4n+2) .blk-label { color: var(--green); }
+  .grid2 > .blk:nth-child(4n+3) .blk-label,
+  .grid3 > .blk:nth-child(4n+3) .blk-label,
+  .grid4 > .blk:nth-child(4n+3) .blk-label { color: var(--amber); }
+  .grid2 > .blk:nth-child(4n) .blk-label,
+  .grid3 > .blk:nth-child(4n) .blk-label,
+  .grid4 > .blk:nth-child(4n) .blk-label { color: var(--violet); }
+  .blk h3 { font-size: 17px; font-weight: 800; color:#fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+  .blk p  { font-size: 14px; color: var(--dim); line-height: 1.55; }
+
+  code {
+    background: rgba(255,255,255,.06); border:1px solid var(--border);
+    padding: 1px 7px; border-radius: 2px; font-size: 13px; color: var(--amber);
+  }
+  .hl { color: var(--fire); font-weight: 800; }
+  .hlg { color: var(--green); font-weight: 800; }
+
+  /* badges */
+  .badges { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 22px; }
+  .badge {
+    border:1px solid var(--border); padding:5px 14px; font-size:13px; color:var(--dim);
+    clip-path: polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+  }
+  .badge b { color: var(--text); }
+
+  /* table */
+  table { width:100%; border-collapse: collapse; font-size: 14px; }
+  thead tr { background: var(--bg); }
+  th { padding: 10px 14px; text-align:left; font-size:10px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color:var(--rust); border-bottom:1px solid var(--rust); }
+  td { padding: 10px 14px; border-bottom:1px solid var(--border); color:var(--dim); }
+  td:first-child { color: var(--amber); font-weight:700; }
+  tr.best td { background: rgba(82,183,136,.07); }
+  tr.best td:first-child { color: var(--green); }
+
+  /* big number stats */
+  .stats { display:flex; gap:0; margin-top: 6px; }
+  .stat { padding: 14px 32px 14px 0; border-right:1px solid var(--border); margin-right: 28px; }
+  .stat:last-child { border-right:none; }
+  .stat .num { font-size: 44px; font-weight:900; color: var(--fire); line-height:1; letter-spacing:-1px; }
+  .stat .lbl { font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing:1px; margin-top:6px; }
+
+  /* pipeline */
+  .pipe { display:flex; align-items:stretch; gap:0; margin-top: 10px; }
+  .pstep {
+    flex:1; background: var(--panel); border:1px solid var(--border);
+    padding: 22px 20px; position: relative;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%);
+  }
+  .pstep:first-child { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); }
+  .pstep .pn { font-size: 11px; font-weight:900; color: var(--rust); letter-spacing:2px; }
+  .pstep .pt { font-size: 15px; font-weight:800; color:#fff; text-transform:uppercase; margin-top:6px; letter-spacing:.5px; }
+  .pstep .pd { font-size: 12px; color: var(--dim); margin-top:6px; }
+
+  /* imbalance bar */
+  .imbar { display:flex; height:44px; overflow:hidden; gap:2px; }
+  .imbar .normal { flex:96.6; background:rgba(96,112,128,.25); border:1px solid var(--border); display:flex; align-items:center; padding:0 18px; }
+  .imbar .fail   { flex:3.4; background:rgba(232,74,10,.25); border:1px solid var(--rust); display:flex; align-items:center; justify-content:center; }
+
+  ul.clean { list-style:none; }
+  ul.clean li { font-size:15px; color: var(--light); padding:8px 0 8px 22px; position:relative; border-bottom:1px solid var(--border); }
+  ul.clean li::before { content:'▸'; position:absolute; left:0; color: var(--fire); font-weight:900; }
+  ul.clean li b { color:#fff; }
+
+  /* ── STACKING DIAGRAM ── */
+  .stack { display:flex; flex-direction:column; align-items:center; gap:0; }
+  .base-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .bbox {
+    background: var(--bg); border:1px solid var(--border);
+    padding: 12px 22px; font-size:14px; font-weight:800; color:var(--fire);
+    text-transform:uppercase; letter-spacing:1px;
+    clip-path: polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  }
+  .arr { display:flex; flex-direction:column; align-items:center; margin:10px 0; }
+  .arr-line { width:2px; height:18px; background:var(--rust); }
+  .arr-head { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-top:10px solid var(--rust); }
+  .meta-box {
+    background: linear-gradient(105deg,var(--rust),var(--fire));
+    padding: 13px 42px; font-size:15px; font-weight:900; color:#fff;
+    text-transform:uppercase; letter-spacing:2px;
+    clip-path: polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+  }
+  .stack-note { font-size:11px; color:var(--dim); margin-top:14px; letter-spacing:1px; text-transform:uppercase; }
+
+  /* ── LAYER BANDS ── */
+  .layers { display:flex; flex-direction:column; gap:0; max-width:880px; }
+  .lyr {
+    display:flex; align-items:center; gap:24px;
+    border:1px solid var(--border); padding:20px 26px; position:relative;
+    background: var(--panel);
+    clip-path: polygon(0 0,100% 0,100% 100%,14px 100%);
+  }
+  .lyr .lbar { position:absolute; left:0; top:0; bottom:0; width:5px; }
+  .lyr-n { font-size:30px; font-weight:900; line-height:1; min-width:54px; letter-spacing:-1px; }
+  .lyr-body { flex:1; }
+  .lyr-h { font-size:15px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:.5px; }
+  .lyr-h small { font-size:12px; font-weight:700; color:var(--dim); text-transform:none; letter-spacing:0; margin-left:8px; }
+  .lyr-d { font-size:13.5px; color:var(--dim); margin-top:4px; }
+  .lyr-tag { font-size:11px; font-weight:800; color:var(--metal); text-transform:uppercase; letter-spacing:1px; text-align:right; min-width:110px; }
+  .lyr-arrow { align-self:center; color:var(--metal); font-size:13px; font-weight:800; letter-spacing:1px; padding:6px 0; text-transform:uppercase; }
+  .propuesta-tag {
+    display:inline-block; border:1px solid var(--amber); color:var(--amber);
+    font-size:11px; font-weight:900; letter-spacing:2px; text-transform:uppercase;
+    padding:4px 12px; margin-left:14px; vertical-align:middle;
+    clip-path: polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+  }
+
+  /* ── NAV CHROME ── */
+  .progress { position: fixed; top:0; left:0; height:3px; background: linear-gradient(90deg,var(--rust),var(--fire)); z-index: 50; transition: width .35s; }
+  .topbar { position: fixed; top:0; right:0; left:0; height:0; z-index:40; }
+  .logo {
+    position: fixed; top: 22px; left: 80px; z-index: 45;
+    font-size: 11px; font-weight: 900; color: var(--fire); letter-spacing: 3px; text-transform: uppercase;
+  }
+  .controls { position: fixed; bottom: 24px; right: 80px; z-index: 45; display:flex; align-items:center; gap:14px; }
+  .counter { font-size: 12px; color: var(--dim); letter-spacing: 2px; font-weight:700; }
+  .counter b { color: var(--fire); }
+  .nav-btn {
+    width: 42px; height: 42px; border:1px solid var(--border); background: var(--panel);
+    color: var(--text); cursor:pointer; font-size: 18px; display:flex; align-items:center; justify-content:center;
+    transition: border-color .15s, color .15s;
+  }
+  .nav-btn:hover { border-color: var(--fire); color: var(--fire); }
+  .secnum {
+    position: fixed; bottom: 28px; left: 80px; z-index: 45;
+    font-size: 11px; font-weight:900; letter-spacing:3px; color: var(--rust); text-transform: uppercase;
+  }
+  .hint { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 45; font-size: 11px; color: var(--dim); letter-spacing:1px; }
+
+  @media (max-width: 900px) {
+    .slide { padding: 56px 28px 84px; }
+    h1 { font-size: 40px; } h2 { font-size: 30px; }
+    .logo, .controls, .secnum { left: 28px; right: 28px; }
+    .controls { right: 28px; }
+    .hero-img { width: 100%; opacity:.35; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+<div class="progress" id="progress"></div>
+<div class="logo">⬡ Parada de Máquina</div>
+
+<!-- ░░ SLIDE 1 — TÍTULO ░░ -->
+<section class="slide active">
+  <div class="hero-slash"></div>
+  <div class="hero-img"><img src="hero-machine.jpg" alt="Máquina industrial"></div>
+  <div class="eyebrow">Proyecto ML · Bootcamp Data Science</div>
+  <h1>Predecir<br>cuándo una<br><em>máquina va a fallar</em></h1>
+  <p class="lead" style="margin-top:24px;border-left:3px solid var(--rust);padding-left:18px">
+    Usar los datos de los sensores de máquinas industriales para avisar de una avería
+    <span class="hl">antes</span> de que ocurra.
+  </p>
+  <div class="stats" style="margin-top:36px">
+    <div class="stat"><div class="num">4</div><div class="lbl">Conjuntos de datos</div></div>
+    <div class="stat"><div class="num">5</div><div class="lbl">Tipos de modelo</div></div>
+    <div class="stat"><div class="num">~6M</div><div class="lbl">Registros analizados</div></div>
+  </div>
+</section>
+
+<!-- ░░ SLIDE 2 — EL PROBLEMA ░░ -->
+<section class="slide">
+  <div class="eyebrow">El problema · en palabras simples</div>
+  <h2>¿Por qué <span>importa</span>?</h2>
+  <p class="lead" style="margin-bottom:28px">
+    Una máquina industrial que se para sin avisar detiene toda la producción. Reparar de urgencia
+    cuesta <span class="hl">miles de euros por hora</span> y nadie lo vio venir.
+  </p>
+  <div class="grid3">
+    <div class="blk bar-blue">
+      <div class="blk-label">Hoy</div>
+      <h3>Se arregla cuando ya falló</h3>
+      <p>Se espera a que la máquina se rompa. La parada es total e inesperada.</p>
+    </div>
+    <div class="blk bar-green">
+      <div class="blk-label">Alternativa</div>
+      <h3>Revisar por calendario</h3>
+      <p>Mantenimiento cada X horas, falle o no. Se gasta de más y aun así hay sorpresas.</p>
+    </div>
+    <div class="blk bar-fire">
+      <div class="blk-label" style="color:var(--fire)">Nuestra idea</div>
+      <h3>Anticipar el fallo</h3>
+      <p>Leer los sensores en tiempo real y avisar <b>antes</b> de que la máquina se pare.</p>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:24px">Esto se llama <b style="color:var(--text)">mantenimiento predictivo</b>: la máquina deja pistas en sus datos; nuestro objetivo es aprender a leerlas.</p>
+</section>
+
+<!-- ░░ SLIDE 3 — EL ESQUEMA GENERAL ░░ -->
+<section class="slide">
+  <div class="eyebrow">La hoja de ruta</div>
+  <h2>El <span>esquema</span> del proyecto</h2>
+  <p class="sub" style="margin-bottom:26px">Cada conjunto de datos sigue el mismo recorrido, de los datos en bruto a un modelo que predice.</p>
+  <div class="pipe">
+    <div class="pstep"><div class="pn">01</div><div class="pt">Explorar</div><div class="pd">Entender los datos: qué hay, qué falta, qué pinta tienen (EDA).</div></div>
+    <div class="pstep"><div class="pn">02</div><div class="pt">Preparar</div><div class="pd">Limpiar y crear "pistas" útiles para el modelo (procesado).</div></div>
+    <div class="pstep"><div class="pn">03</div><div class="pt">Modelar</div><div class="pd">Entrenar varios modelos que aprenden a detectar el fallo.</div></div>
+    <div class="pstep"><div class="pn">04</div><div class="pt">Evaluar</div><div class="pd">Medir cuál acierta más y combinar los mejores.</div></div>
+  </div>
+  <div style="margin-top:30px">
+    <div class="blk-label">Cuatro fuentes de datos, de lo simple a lo real</div>
+    <div class="grid4" style="margin-top:12px">
+      <div class="blk bar-blue"><h3 style="color:var(--blue)">AI4I 2020</h3><p>Conjunto principal. Limpio y didáctico. <b>10.000</b> máquinas simuladas.</p></div>
+      <div class="blk bar-green"><h3 style="color:var(--green)">CNC Mill</h3><p>Experimentos reales de corte de metal. Pequeño: <b>18</b> pruebas.</p></div>
+      <div class="blk bar-violet"><h3 style="color:var(--violet)">Industrial</h3><p>Sensores de una fresadora de 5 ejes a alta frecuencia.</p></div>
+      <div class="blk bar-teal"><h3 style="color:var(--teal)">SPARK</h3><p>Consumo eléctrico real de <b>11</b> máquinas durante un año.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ SLIDE 4 — DATASET PRINCIPAL ░░ -->
+<section class="slide">
+  <div class="eyebrow">Conjunto de datos principal</div>
+  <h2>AI4I <span>2020</span></h2>
+  <p class="lead" style="margin-bottom:22px">
+    10.000 registros de máquinas, cada uno con sus mediciones y una etiqueta: <span class="hlg">funcionó bien</span> o <span class="hl">falló</span>. Es el conjunto con el que aprendemos el método.
+  </p>
+  <div class="badges">
+    <div class="badge">Fuente: <b>UCI ML Repository</b></div>
+    <div class="badge">Registros: <b>10.000</b></div>
+    <div class="badge">Mediciones: <b>5 sensores</b></div>
+    <div class="badge">Fallos: <b>339 (3,4 %)</b></div>
+    <div class="badge">Datos faltantes: <b>ninguno</b></div>
+  </div>
+  <table>
+    <thead><tr><th>Lo que mide el sensor</th><th>En cristiano</th></tr></thead>
+    <tbody>
+      <tr><td>Temperatura del aire / del proceso</td><td>Cómo de caliente está el entorno y la pieza</td></tr>
+      <tr><td>Velocidad de rotación (rpm)</td><td>Cómo de rápido gira la herramienta</td></tr>
+      <tr><td>Par motor (torque)</td><td>Cuánta fuerza de giro está haciendo</td></tr>
+      <tr><td>Desgaste de herramienta (min)</td><td>Cuánto tiempo lleva usándose la herramienta</td></tr>
+      <tr><td>Tipo de producto (L / M / H)</td><td>Calidad de la pieza: baja, media o alta</td></tr>
+    </tbody>
+  </table>
+  <p class="sub" style="margin-top:18px">Con estas 5 lecturas el modelo debe responder a una pregunta de sí/no: <b style="color:var(--text)">¿esta máquina va a fallar?</b></p>
+</section>
+
+<!-- ░░ SLIDE 5 — EDA: EL RETO ░░ -->
+<section class="slide">
+  <div class="eyebrow">Lo que descubrimos al explorar (EDA)</div>
+  <h2>El gran <span>reto</span>: casi nunca falla</h2>
+  <p class="lead" style="margin-bottom:22px">Solo <span class="hl">3 de cada 100</span> registros son un fallo. Suena bien… pero engaña a los modelos.</p>
+
+  <div class="blk" style="margin-bottom:18px">
+    <div class="blk-label">Desbalanceo de clases · 10.000 registros</div>
+    <div class="imbar" style="margin-top:6px">
+      <div class="normal"><span style="font-size:13px;font-weight:900;color:var(--metal);letter-spacing:1px">FUNCIONA BIEN · 96,6 %</span></div>
+      <div class="fail"><span style="font-size:12px;font-weight:900;color:var(--fire)">3,4 %</span></div>
+    </div>
+    <p style="margin-top:12px;font-size:14px;color:var(--dim)">
+      Un modelo "vago" que diga siempre <i>"todo bien"</i> acierta el <span style="color:var(--metal);font-weight:800">96,6 %</span> de las veces… y no detecta <b style="color:var(--fire)">ni un solo fallo</b>. Por eso "acertar mucho" no es buena medida aquí.
+    </p>
+  </div>
+
+  <div class="grid2">
+    <div class="blk bar-blue">
+      <div class="blk-label">Buena noticia</div>
+      <h3>Datos limpios</h3>
+      <p>Sin valores faltantes, sin duplicados, rangos coherentes. Podemos fiarnos de ellos.</p>
+    </div>
+    <div class="blk bar-green">
+      <div class="blk-label">Lo que medimos en vez de "aciertos"</div>
+      <h3>¿Cuántos fallos cazamos?</h3>
+      <p>La medida clave es el <b style="color:var(--green)">recall</b>: de todos los fallos reales, cuántos detecta el modelo. Mejor una falsa alarma que una avería no vista.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ SLIDE 6 — PROCESADO ░░ -->
+<section class="slide">
+  <div class="eyebrow">Preparar los datos · procesado</div>
+  <h2>Le damos <span>pistas</span> al modelo</h2>
+  <p class="lead" style="margin-bottom:24px">
+    En vez de dejar que el modelo lo descubra todo solo, combinamos los sensores en señales más claras
+    — igual que un mecánico experto sabe qué mirar.
+  </p>
+  <div class="grid2">
+    <div class="blk bar-blue">
+      <div class="blk-label">Pista 1</div>
+      <h3>Potencia</h3>
+      <p>Fuerza × velocidad de giro. Si se dispara o se cae, hay problema eléctrico.</p>
+    </div>
+    <div class="blk bar-green">
+      <div class="blk-label">Pista 2</div>
+      <h3>Diferencia de temperatura</h3>
+      <p>Pieza menos aire. Si la máquina no disipa el calor, se recalienta.</p>
+    </div>
+    <div class="blk bar-amber">
+      <div class="blk-label">Pista 3</div>
+      <h3>Desgaste × fuerza</h3>
+      <p>Herramienta gastada haciendo mucha fuerza = sobreesfuerzo, señal típica de avería.</p>
+    </div>
+    <div class="blk bar-violet">
+      <div class="blk-label">Pista 4</div>
+      <h3>Nivel de desgaste</h3>
+      <p>Cuánto se ha usado la herramienta respecto a su límite recomendado.</p>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:22px">
+    También separamos los datos en dos grupos: <b style="color:var(--text)">80 % para enseñar</b> al modelo y
+    <b style="color:var(--text)">20 % para examinarlo</b> con casos que no ha visto nunca.
+  </p>
+</section>
+
+<!-- ░░ SLIDE 7 — PRIMEROS MODELOS ░░ -->
+<section class="slide">
+  <div class="eyebrow">Primeros modelos · AI4I</div>
+  <h2>Cinco enfoques <span>distintos</span></h2>
+  <p class="sub" style="margin-bottom:22px">Probamos cinco "cerebros" diferentes, del más simple al más sofisticado, para ver cuál detecta mejor los fallos.</p>
+  <div class="grid3" style="margin-bottom:2px">
+    <div class="blk bar-blue"><h3 style="color:var(--blue)">Regresión Logística</h3><p>El más simple. Traza una línea entre "bien" y "fallo". Punto de partida.</p></div>
+    <div class="blk bar-green"><h3 style="color:var(--green)">Random Forest</h3><p>Cientos de "árboles de decisión" votan juntos. Robusto y fiable.</p></div>
+    <div class="blk bar-amber"><h3 style="color:var(--amber)">SVM</h3><p>Dibuja una frontera curva entre los dos grupos.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="blk bar-violet"><h3 style="color:var(--violet)">XGBoost</h3><p>Árboles que aprenden de los errores del anterior. Muy potente con datos en tabla.</p></div>
+    <div class="blk bar-teal"><h3 style="color:var(--teal)">LightGBM</h3><p>Misma idea que XGBoost pero más rápido. Pensado para datos desbalanceados.</p></div>
+  </div>
+  <p class="sub" style="margin-top:22px">A todos les decimos que <b style="color:var(--text)">presten más atención a los fallos</b>, ya que son raros, para que no los ignoren.</p>
+</section>
+
+<!-- ░░ SLIDE 8 — RESULTADOS ░░ -->
+<section class="slide">
+  <div class="eyebrow">Primeros resultados · AI4I</div>
+  <h2>¿Quién caza más <span>fallos</span>?</h2>
+  <p class="sub" style="margin-bottom:18px">
+    <b style="color:var(--green)">Recall</b> = de los fallos reales, cuántos detecta ·
+    <b style="color:var(--amber)">Precisión</b> = de sus alarmas, cuántas eran ciertas ·
+    <b style="color:var(--fire)">F1</b> = equilibrio entre ambas.
+  </p>
+  <table>
+    <thead><tr><th>Modelo</th><th>Recall</th><th>Precisión</th><th>F1</th><th>Calidad global (AUC)</th></tr></thead>
+    <tbody>
+      <tr class="best"><td>LightGBM ★</td><td>0,84</td><td>0,95</td><td><b>0,89</b></td><td>0,97</td></tr>
+      <tr><td>XGBoost</td><td>0,84</td><td>0,84</td><td>0,84</td><td>0,98</td></tr>
+      <tr><td>Random Forest</td><td>0,71</td><td>0,96</td><td>0,81</td><td>0,97</td></tr>
+      <tr><td>SVM</td><td>0,93</td><td>0,31</td><td>0,46</td><td>0,97</td></tr>
+      <tr><td>Regresión Logística</td><td>0,90</td><td>0,18</td><td>0,30</td><td>0,94</td></tr>
+    </tbody>
+  </table>
+  <div class="grid2" style="margin-top:20px">
+    <div class="blk bar-blue">
+      <div class="blk-label">Lectura simple</div>
+      <p style="font-size:14px"><b style="color:var(--green)">LightGBM</b> es el mejor equilibrio: caza el <b>84 %</b> de los fallos y casi todas sus alarmas son ciertas.</p>
+    </div>
+    <div class="blk bar-green">
+      <div class="blk-label">El contraste</div>
+      <p style="font-size:14px">La Regresión Logística caza muchos fallos (90 %) pero da <b style="color:var(--red)">demasiadas falsas alarmas</b> — solo 18 de cada 100 son reales.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ SLIDE 9 — OTROS DATASETS ░░ -->
+<section class="slide">
+  <div class="eyebrow">Los otros tres conjuntos · en breve</div>
+  <h2>El mismo método, <span>datos reales</span></h2>
+  <p class="sub" style="margin-bottom:24px">El AI4I nos enseñó el camino. Lo aplicamos a datos del mundo real, cada uno con su propio reto.</p>
+  <div class="grid3">
+    <div class="blk bar-green">
+      <div class="blk-label" style="color:var(--green)">CNC Mill · Kaggle</div>
+      <h3>Herramienta gastada</h3>
+      <p>Solo <b>18</b> experimentos de corte real. El reto es lo pequeño que es. Mejor modelo: <span class="hlg">F1 0,78</span> detectando herramienta desgastada.</p>
+    </div>
+    <div class="blk bar-violet">
+      <div class="blk-label" style="color:var(--violet)">Industrial · KIT Karlsruhe</div>
+      <h3>Fresadora de 5 ejes</h3>
+      <p>Sensores a alta velocidad (500 lecturas/seg). Detecta tipos de anomalía como vibración o sobrecarga. Mejor F1: <span class="hlg">0,69</span>.</p>
+    </div>
+    <div class="blk bar-teal">
+      <div class="blk-label" style="color:var(--teal)">SPARK · 11 máquinas</div>
+      <h3>Consumo eléctrico</h3>
+      <p>Un año de datos sin etiquetas de fallo. El modelo aprende solo qué es "normal" y marca el <b>5 %</b> más raro como sospechoso.</p>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:22px">Aquí no había respuestas marcadas de antemano, así que usamos un enfoque distinto: <b style="color:var(--text)">detectar lo que se sale de lo normal</b> (detección de anomalías).</p>
+</section>
+
+<!-- ░░ SLIDE — ESQUEMA DE CAPAS (DATASETS) ░░ -->
+<section class="slide">
+  <div class="eyebrow">El esquema que estoy creando · sobre el papel</div>
+  <h2>Un sistema en <span>3 capas</span><span class="propuesta-tag">Esquema conceptual</span></h2>
+  <p class="sub" style="margin-bottom:22px">
+    Cada dataset cubre un nivel distinto. La idea: empezar barato y amplio, y solo <b style="color:var(--text)">escalar al siguiente nivel si el anterior da la alarma</b> — como un triaje.
+  </p>
+
+  <div class="layers">
+    <div class="lyr">
+      <div class="lbar" style="background:var(--blue)"></div>
+      <div class="lyr-n" style="color:var(--blue)">1</div>
+      <div class="lyr-body">
+        <div class="lyr-h">Detección eléctrica <small>· dataset SPARK</small></div>
+        <div class="lyr-d">Un sensor barato vigila el consumo eléctrico de <b>toda</b> máquina, las 24 h. Si algo se sale de lo normal, da la primera voz de alarma.</div>
+      </div>
+      <div class="lyr-tag" style="color:var(--blue)">Siempre activa</div>
+    </div>
+
+    <div class="lyr-arrow">↓ &nbsp;solo si la capa 1 detecta algo raro</div>
+
+    <div class="lyr">
+      <div class="lbar" style="background:var(--teal)"></div>
+      <div class="lyr-n" style="color:var(--teal)">2</div>
+      <div class="lyr-body">
+        <div class="lyr-h">Confirmación mecánica <small>· datasets Industrial / CNC</small></div>
+        <div class="lyr-d">Mira las señales internas de la máquina (fuerza, potencia del husillo) para confirmar si de verdad hay un problema mecánico, no solo un pico eléctrico. Sin sensores extra.</div>
+      </div>
+      <div class="lyr-tag" style="color:var(--teal)">Se activa<br>bajo alarma</div>
+    </div>
+
+    <div class="lyr-arrow">↓ &nbsp;solo si se confirma el fallo mecánico</div>
+
+    <div class="lyr">
+      <div class="lbar" style="background:var(--violet)"></div>
+      <div class="lyr-n" style="color:var(--violet)">3</div>
+      <div class="lyr-body">
+        <div class="lyr-h">Diagnóstico del fallo <small>· dataset AI4I + modelos</small></div>
+        <div class="lyr-d">El modelo entrenado dice <b>qué tipo</b> de fallo es y <b>qué hacer</b>. Genera la orden de mantenimiento concreta.</div>
+      </div>
+      <div class="lyr-tag" style="color:var(--violet)">Decisión<br>final</div>
+    </div>
+  </div>
+
+  <p class="sub" style="margin-top:22px">
+    <b style="color:var(--amber)">Por qué en capas:</b> cada nivel es más caro y preciso que el anterior. Activarlos en cascada da <b style="color:var(--text)">detección temprana en todas las máquinas</b> con pocas falsas alarmas y bajo coste.
+  </p>
+</section>
+
+<!-- ░░ SLIDE — CIERRE ░░ -->
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="eyebrow" style="margin-left:auto;margin-right:auto">Gracias por la atención</div>
+  <div style="font-size:34px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:-1px;line-height:1.15;margin:10px 0 36px">
+    Un fallo detectado a tiempo<br><em style="font-style:normal;color:var(--fire)">vale más</em> que mil reportes.
+  </div>
+  <h1 style="font-size:84px">¿<em style="display:inline">Preguntas</em>?</h1>
+  <div style="width:60px;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));margin:34px auto 0"></div>
+  <p class="sub" style="margin-top:24px">Python · scikit-learn · LightGBM · XGBoost · pandas · matplotlib · seaborn</p>
+</section>
+
+<!-- NAV CHROME -->
+<div class="secnum" id="secnum">01 / 10</div>
+<div class="hint" id="hint">← → para navegar</div>
+<div class="controls">
+  <span class="counter"><b id="cur">1</b> / <span id="tot">10</span></span>
+  <button class="nav-btn" id="prev" aria-label="Anterior">‹</button>
+  <button class="nav-btn" id="next" aria-label="Siguiente">›</button>
+</div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const total = slides.length;
+  document.getElementById('tot').textContent = total;
+  const secnames = ['Inicio','Problema','Esquema','Datos','EDA','Procesado','Modelos','Resultados','Otros datos','Sistema por capas','Cierre'];
+
+  function show(n){
+    i = Math.max(0, Math.min(total-1, n));
+    slides.forEach((s,j)=> s.classList.toggle('active', j===i));
+    document.getElementById('cur').textContent = i+1;
+    document.getElementById('progress').style.width = ((i+1)/total*100)+'%';
+    const num = String(i+1).padStart(2,'0');
+    document.getElementById('secnum').textContent = num+' · '+(secnames[i]||'').toUpperCase();
+    document.getElementById('hint').style.opacity = (i===0)?'1':'0';
+    slides[i].scrollTop = 0;
+  }
+  document.getElementById('next').onclick = ()=>show(i+1);
+  document.getElementById('prev').onclick = ()=>show(i-1);
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight',' ','PageDown'].includes(e.key)){ e.preventDefault(); show(i+1); }
+    if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); show(i-1); }
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(total-1);
+  });
+  // swipe on touch
+  let x0=null;
+  document.addEventListener('touchstart', e=> x0=e.touches[0].clientX);
+  document.addEventListener('touchend', e=>{ if(x0===null) return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>50) show(i+(dx<0?1:-1)); x0=null; });
+  show(0);
+</script>
+</body>
+</html>
