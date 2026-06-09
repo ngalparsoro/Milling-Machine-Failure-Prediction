@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen · Parada de Máquina</title><style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0A0C0F; --panel:#111518; --border:#1E2530;
+    --rust:#C0390A; --fire:#E84A0A; --amber:#F07820; --copper:#A05010;
+    --metal:#607080; --light:#B0C0D0; --text:#D8E4EC; --dim:#60737F;
+    --green:#52B788; --red:#E63946; --blue:#00B4D8; --violet:#8E7BE8; --teal:#2EC4B6;
+  }
+  html,body{height:100%;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow:hidden;}
+  .deck::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(200,80,10,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,80,10,.04) 1px,transparent 1px);
+    background-size:48px 48px;}
+
+  /* ── SLIDES (transición suave crossfade) ── */
+  .slide{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:60px 80px 96px;
+    padding-left:max(72px,calc((100% - 1000px)/2));padding-right:max(72px,calc((100% - 1000px)/2));
+    opacity:0;visibility:hidden;transform:translateY(26px) scale(.992);
+    transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1),visibility .55s;
+    z-index:1;overflow-y:auto;}
+  .slide.active{opacity:1;visibility:visible;transform:none;z-index:2;}
+  .slide.active > *{animation:rise .6s cubic-bezier(.22,.61,.36,1) both;}
+  .slide.active > *:nth-child(2){animation-delay:.06s;}
+  .slide.active > *:nth-child(3){animation-delay:.12s;}
+  .slide.active > *:nth-child(4){animation-delay:.18s;}
+  .slide.active > *:nth-child(5){animation-delay:.24s;}
+  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spark{display:inline-block;animation:spin 24s linear infinite;filter:drop-shadow(0 0 14px rgba(217,119,87,.35));transition:filter .3s;cursor:pointer;}
+  .spark:hover{animation-duration:2.2s;filter:drop-shadow(0 0 24px rgba(217,119,87,.65));}
+
+  .eyebrow{font-size:11px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--fire);
+    margin-bottom:18px;display:inline-flex;align-items:center;gap:10px;width:fit-content;
+    background:rgba(232,74,10,.12);border:1px solid rgba(232,74,10,.4);padding:6px 16px 6px 12px;
+    clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);}
+  .eyebrow::before{content:'';display:block;width:24px;height:2px;background:var(--fire);}
+  h1{font-size:62px;font-weight:900;line-height:.98;color:#fff;text-transform:uppercase;letter-spacing:-2px;}
+  h1 em{font-style:normal;color:var(--fire);display:block;}
+  h2{font-size:40px;font-weight:900;text-transform:uppercase;letter-spacing:-1px;color:#fff;line-height:1;margin-bottom:26px;}
+  h2 span{color:var(--fire);}
+  .lead{font-size:19px;color:var(--light);max-width:780px;line-height:1.55;}
+  .sub{font-size:15px;color:var(--dim);max-width:740px;}
+  .hl{color:var(--fire);font-weight:800;} .hlg{color:var(--green);font-weight:800;}
+
+  /* hero */
+  .hero-img{position:absolute;right:0;top:0;bottom:0;width:52%;pointer-events:none;z-index:-1;}
+  .hero-img img{width:100%;height:100%;object-fit:cover;object-position:center right;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.4) 25%,rgba(0,0,0,.8) 60%,#000 100%);
+    mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.4) 25%,rgba(0,0,0,.8) 60%,#000 100%);}
+  .hero-slash{position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,var(--rust),var(--fire));
+    clip-path:polygon(0 0,38% 0,28% 100%,0 100%);opacity:.12;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+
+  .blk{background:var(--panel);padding:24px;border:1px solid var(--border);position:relative;overflow:hidden;
+    transition:transform .2s ease, border-color .2s ease;}
+  .blk:hover{transform:translateY(-3px);border-color:var(--metal);}
+  .blk::after{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));}
+  .blk.bar-blue::after{background:var(--blue);} .blk.bar-green::after{background:var(--green);}
+  .blk.bar-amber::after{background:var(--amber);} .blk.bar-violet::after{background:var(--violet);}
+  .blk.bar-teal::after{background:var(--teal);} .blk.bar-fire::after{background:linear-gradient(90deg,var(--rust),var(--fire));}
+  .blk.bar-red::after{background:var(--red);}
+  .blk-label{font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--fire);
+    margin-bottom:12px;display:inline-flex;align-items:center;padding:4px 12px;border:1px solid currentColor;
+    background:rgba(255,255,255,.05);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);}
+  .blk h3{font-size:17px;font-weight:800;color:#fff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+  .blk p{font-size:14px;color:var(--dim);line-height:1.55;}
+  code{background:rgba(255,255,255,.06);border:1px solid var(--border);padding:1px 7px;border-radius:2px;font-size:13px;color:var(--amber);}
+
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+  .badge{border:1px solid var(--border);padding:5px 14px;font-size:13px;color:var(--dim);
+    clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);}
+  .badge b{color:var(--text);}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead tr{background:var(--bg);}
+  th{padding:10px 14px;text-align:left;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--rust);border-bottom:1px solid var(--rust);}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--dim);}
+  td:first-child{color:var(--amber);font-weight:700;}
+  tr.best td{background:rgba(82,183,136,.08);} tr.best td:first-child{color:var(--green);}
+  tr:hover td{background:rgba(255,255,255,.02);}
+
+  .stats{display:flex;gap:0;margin-top:6px;flex-wrap:wrap;}
+  .stat{padding:14px 32px 14px 0;border-right:1px solid var(--border);margin-right:28px;}
+  .stat:last-child{border-right:none;}
+  .stat .num{font-size:42px;font-weight:900;color:var(--fire);line-height:1;letter-spacing:-1px;}
+  .stat .lbl{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+
+  .pipe{display:flex;gap:0;margin-top:10px;flex-wrap:wrap;}
+  .pstep{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--border);padding:20px;position:relative;
+    clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%,14px 50%);}
+  .pstep:first-child{clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%);}
+  .pstep .pn{font-size:11px;font-weight:900;color:var(--rust);letter-spacing:2px;}
+  .pstep .pt{font-size:15px;font-weight:800;color:#fff;text-transform:uppercase;margin-top:6px;letter-spacing:.5px;}
+  .pstep .pd{font-size:12px;color:var(--dim);margin-top:6px;}
+
+  .imbar{display:flex;height:44px;overflow:hidden;gap:2px;}
+  .imbar .normal{flex:96.6;background:rgba(96,112,128,.25);border:1px solid var(--border);display:flex;align-items:center;padding:0 18px;}
+  .imbar .fail{flex:3.4;background:rgba(232,74,10,.25);border:1px solid var(--rust);display:flex;align-items:center;justify-content:center;}
+
+  /* failure mode rows */
+  .fallos{display:flex;flex-direction:column;gap:2px;}
+  .fallo{display:flex;align-items:stretch;background:var(--panel);border:1px solid var(--border);overflow:hidden;
+    transition:border-color .2s, transform .2s;clip-path:polygon(0 0,100% 0,100% 100%,12px 100%);}
+  .fallo:hover{border-color:var(--metal);transform:translateX(3px);}
+  .fallo-bar{width:5px;flex-shrink:0;}
+  .fallo-inner{display:flex;align-items:center;flex:1;padding:14px 18px;gap:18px;}
+  .fallo-code{font-size:17px;font-weight:900;min-width:52px;letter-spacing:1px;}
+  .fallo-info{flex:1;}
+  .fallo-name{font-size:13px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+  .fallo-desc{font-size:12.5px;color:var(--dim);}
+  .fallo-n{font-size:20px;font-weight:900;min-width:64px;text-align:right;letter-spacing:-1px;}
+  .fallo-nlbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;text-align:right;}
+
+  /* layer bands */
+  .layers{display:flex;flex-direction:column;gap:0;}
+  .lyr{display:flex;align-items:center;gap:22px;border:1px solid var(--border);padding:18px 24px;position:relative;background:var(--panel);
+    transition:transform .2s;clip-path:polygon(0 0,100% 0,100% 100%,14px 100%);}
+  .lyr:hover{transform:translateX(4px);}
+  .lyr .lbar{position:absolute;left:0;top:0;bottom:0;width:5px;}
+  .lyr-n{font-size:28px;font-weight:900;line-height:1;min-width:50px;letter-spacing:-1px;}
+  .lyr-body{flex:1;} .lyr-h{font-size:15px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.5px;}
+  .lyr-h small{font-size:12px;font-weight:700;color:var(--dim);text-transform:none;letter-spacing:0;margin-left:8px;}
+  .lyr-d{font-size:13px;color:var(--dim);margin-top:4px;}
+  .lyr-tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;text-align:right;min-width:104px;}
+  .lyr-arrow{align-self:center;color:var(--metal);font-size:12px;font-weight:800;letter-spacing:1px;padding:5px 0;text-transform:uppercase;}
+
+  .propuesta-tag{display:inline-block;border:1px solid var(--amber);color:var(--amber);font-size:11px;font-weight:900;
+    letter-spacing:2px;text-transform:uppercase;padding:4px 12px;margin-left:14px;vertical-align:middle;
+    clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);}
+
+  ul.clean{list-style:none;} ul.clean li{font-size:15px;color:var(--light);padding:8px 0 8px 22px;position:relative;border-bottom:1px solid var(--border);}
+  ul.clean li::before{content:'\25B8';position:absolute;left:0;color:var(--fire);font-weight:900;}
+  ul.clean li b{color:#fff;}
+
+  /* imagen tipos de fallo */
+  .figbox{background:var(--panel);border:1px solid var(--border);padding:14px;position:relative;overflow:hidden;}
+  .figbox::after{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));}
+  .figbox img{width:100%;display:block;border:1px solid var(--border);background:#fff;}
+  .figbox .fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    min-height:240px;color:var(--dim);font-size:13px;border:1px dashed var(--metal);text-align:center;padding:20px;}
+  .figcap{font-size:12px;color:var(--dim);margin-top:10px;letter-spacing:.5px;}
+
+  /* info complementaria al pie */
+  .compl{margin-top:26px;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;}
+  .compl .ci{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:7px;}
+  .compl .ci::before{content:'';width:7px;height:7px;background:var(--rust);flex-shrink:0;
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+  .compl .ci b{color:var(--light);font-weight:700;}
+
+  /* ── CHROME ── */
+  .progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));z-index:50;transition:width .45s;}
+  .logo{position:fixed;top:20px;left:34px;z-index:45;font-size:11px;font-weight:900;color:var(--fire);letter-spacing:3px;text-transform:uppercase;}
+  .controls{position:fixed;bottom:22px;right:34px;z-index:45;display:flex;align-items:center;gap:14px;}
+  .counter{font-size:12px;color:var(--dim);letter-spacing:2px;font-weight:700;} .counter b{color:var(--fire);}
+  .nav-btn{width:40px;height:40px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+    font-size:18px;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+  .nav-btn:hover{border-color:var(--fire);color:var(--fire);background:rgba(232,74,10,.08);}
+  .secnum{position:fixed;bottom:24px;left:34px;z-index:45;font-size:11px;font-weight:900;letter-spacing:3px;color:var(--rust);text-transform:uppercase;}
+  .dots{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:45;display:flex;gap:9px;align-items:center;}
+  .dot{width:9px;height:9px;border:1px solid var(--metal);background:transparent;cursor:pointer;transition:all .2s;
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
+  .dot:hover{border-color:var(--fire);}
+  .dot.on{background:var(--fire);border-color:var(--fire);transform:scale(1.35);}
+
+  @media (max-width:900px){
+    .slide{padding:54px 26px 88px;}
+    h1{font-size:38px;} h2{font-size:28px;}
+    .logo,.secnum{left:20px;} .controls{right:20px;}
+    .hero-img{width:100%;opacity:.32;} .dots{display:none;}
+  }
+</style></head><body><div class="deck">
+<div class="progress" id="progress"></div>
+<div class="logo">⬡ Parada de Máquina</div>
+<section class="slide" style="padding-left:max(40px,calc((100% - 1000px)/4));padding-right:max(40px,calc((100% - 1000px)/4))">
+  <div class="hero-img"><img src="hero-machine.jpg" alt="Máquina industrial"></div>
+  <div class="eyebrow">Proyecto ML · Bootcamp Data Science</div>
+  <h1>Predecir<br>cuándo una<br><em>máquina va a fallar</em></h1>
+  <p class="lead" style="margin-top:22px;border-left:3px solid var(--rust);padding-left:18px">El reto, los datos y los primeros resultados — en cinco minutos.</p>
+  <div class="stats" style="margin-top:32px;align-items:stretch">
+    <div class="stat"><div class="num" data-c="4" style="color:var(--blue)">4</div><div class="lbl" style="color:var(--blue)">Conjuntos de datos</div></div>
+    <div class="stat"><div class="num" data-c="5" style="color:var(--violet)">5</div><div class="lbl" style="color:var(--violet)">Tipos de modelo</div></div>
+    <div class="stat" style="border-right:none;margin-right:0;border:1px solid var(--green);background:rgba(82,183,136,.10);padding:12px 26px;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)">
+      <div class="num" data-c="~6M" style="font-size:56px;color:var(--green)">~6M</div><div class="lbl" style="color:var(--green)">Registros analizados</div></div>
+  </div>
+</section>
+<section class="slide">
+  <div class="eyebrow">El problema · en palabras simples</div>
+  <h2>¿Por qué <span>importa</span>?</h2>
+  <p class="lead" style="margin-bottom:26px">Una máquina industrial que se para sin avisar detiene toda la producción. Reparar de urgencia cuesta <span class="hl">miles de euros por hora</span> y nadie lo vio venir.</p>
+  <div class="grid3">
+    <div class="blk bar-blue"><div class="blk-label" style="color:var(--blue)">Hoy</div><h3>Se arregla cuando ya falló</h3><p>Se espera a que la máquina se rompa. La parada es total e inesperada.</p></div>
+    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">Alternativa</div><h3>Revisar por calendario</h3><p>Mantenimiento cada X horas, falle o no. Se gasta de más y aun así hay sorpresas.</p></div>
+    <div class="blk bar-fire"><div class="blk-label" style="color:var(--fire)">Nuestra idea</div><h3>Anticipar el fallo</h3><p>Leer los sensores en tiempo real y avisar <b>antes</b> de que la máquina se pare.</p></div>
+  </div>
+  <p class="sub" style="margin-top:22px">Esto se llama <b style="color:var(--text)">mantenimiento predictivo</b>: la máquina deja pistas en sus datos; nuestro objetivo es aprender a leerlas.</p>
+  <div class="compl"><div class="ci">Sector: <b>mecanizado industrial</b></div><div class="ci">Coste parada: <b>miles €/hora</b></div><div class="ci">Enfoque: <b>predictivo</b></div></div>
+</section>
+<section class="slide">
+  <div class="eyebrow">Tipos de fallo · AI4I</div>
+  <h2>Cinco formas de <span>romperse</span></h2>
+  <p class="sub" style="margin-bottom:18px">Trabajamos con 4 conjuntos de datos. El principal (AI4I) registra 5 formas en que una máquina puede romperse:</p>
+  <div class="grid2" style="gap:18px;align-items:start">
+    <div class="figbox">
+      <img src="img/tipos_fallo.png" alt="Distribución de los tipos de fallo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="fallback" style="display:none"><b style="color:var(--light)">img/tipos_fallo.png</b><span>Coloca la imagen en la carpeta <code>img/</code> y aparecerá aquí.</span></div>
+      <div class="figcap">Las 5 formas de fallo del dataset AI4I, ilustradas. Las cifras (derecha) son su frecuencia real.</div>
+    </div>
+    <div class="fallos">
+      <div class="fallo"><div class="fallo-bar" style="background:var(--blue)"></div><div class="fallo-inner"><div class="fallo-code" style="color:var(--blue)">HDF</div><div class="fallo-info"><div class="fallo-name">Disipación de calor</div><div class="fallo-desc">La máquina no evacúa el calor y se recalienta.</div></div><div><div class="fallo-n" style="color:var(--blue)">115</div><div class="fallo-nlbl">casos</div></div></div></div>
+      <div class="fallo"><div class="fallo-bar" style="background:var(--green)"></div><div class="fallo-inner"><div class="fallo-code" style="color:var(--green)">OSF</div><div class="fallo-info"><div class="fallo-name">Sobreesfuerzo</div><div class="fallo-desc">Herramienta gastada + mucha fuerza a la vez.</div></div><div><div class="fallo-n" style="color:var(--green)">98</div><div class="fallo-nlbl">casos</div></div></div></div>
+      <div class="fallo"><div class="fallo-bar" style="background:var(--amber)"></div><div class="fallo-inner"><div class="fallo-code" style="color:var(--amber)">PWF</div><div class="fallo-info"><div class="fallo-name">Potencia</div><div class="fallo-desc">El consumo se sale del rango normal.</div></div><div><div class="fallo-n" style="color:var(--amber)">95</div><div class="fallo-nlbl">casos</div></div></div></div>
+      <div class="fallo"><div class="fallo-bar" style="background:var(--violet)"></div><div class="fallo-inner"><div class="fallo-code" style="color:var(--violet)">TWF</div><div class="fallo-info"><div class="fallo-name">Desgaste de herramienta</div><div class="fallo-desc">La herramienta llega a su límite de uso.</div></div><div><div class="fallo-n" style="color:var(--violet)">46</div><div class="fallo-nlbl">casos</div></div></div></div>
+      <div class="fallo"><div class="fallo-bar" style="background:var(--metal)"></div><div class="fallo-inner"><div class="fallo-code" style="color:var(--metal)">RNF</div><div class="fallo-info"><div class="fallo-name">Fallo aleatorio</div><div class="fallo-desc">Sin causa visible en los sensores: impredecible.</div></div><div><div class="fallo-n" style="color:var(--metal)">19</div><div class="fallo-nlbl">casos</div></div></div></div>
+    </div>
+  </div>
+  <div class="compl"><div class="ci">Los más frecuentes: <b>calor y sobreesfuerzo</b></div><div class="ci">El irreducible: <b>RNF (aleatorio)</b></div></div>
+</section>
+<section class="slide">
+  <div class="eyebrow">Primeros resultados · AI4I</div>
+  <h2>¿Quién caza más <span>fallos</span>?</h2>
+  <p class="sub" style="margin-bottom:16px"><b style="color:var(--green)">Recall</b> = de los fallos reales, cuántos detecta · <b style="color:var(--amber)">Precisión</b> = de sus alarmas, cuántas eran ciertas · <b style="color:var(--fire)">F1</b> = equilibrio.</p>
+  <table>
+    <thead><tr><th>Modelo</th><th>Recall</th><th>Precisión</th><th>F1</th><th>Calidad global (AUC)</th></tr></thead>
+    <tbody>
+      <tr class="best"><td>LightGBM ★</td><td>0,84</td><td>0,95</td><td><b>0,89</b></td><td>0,97</td></tr>
+      <tr><td>XGBoost</td><td>0,84</td><td>0,84</td><td>0,84</td><td>0,98</td></tr>
+      <tr><td>Random Forest</td><td>0,71</td><td>0,96</td><td>0,81</td><td>0,97</td></tr>
+      <tr><td>SVM</td><td>0,93</td><td>0,31</td><td>0,46</td><td>0,97</td></tr>
+      <tr><td>Regresión Logística</td><td>0,90</td><td>0,18</td><td>0,30</td><td>0,94</td></tr>
+    </tbody>
+  </table>
+  <div class="grid2" style="margin-top:18px">
+    <div class="blk bar-blue"><div class="blk-label" style="color:var(--blue)">Lectura simple</div><p style="font-size:14px"><b style="color:var(--green)">LightGBM</b> es el mejor equilibrio: caza el <b>84 %</b> de los fallos y casi todas sus alarmas son ciertas.</p></div>
+    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">El contraste</div><p style="font-size:14px">La Regresión Logística caza muchos fallos (90 %) pero da <b style="color:var(--red)">demasiadas falsas alarmas</b>.</p></div>
+  </div>
+  <div class="compl"><div class="ci">Mejor F1: <b>LightGBM 0,89</b></div><div class="ci">Mejor AUC: <b>XGBoost 0,98</b></div></div>
+</section>
+<section class="slide">
+  <div class="eyebrow">El esquema que estoy creando · sobre el papel</div>
+  <h2>Un sistema en <span>3 capas</span><span class="propuesta-tag">Esquema conceptual</span></h2>
+  <p class="sub" style="margin-bottom:20px">Cada dataset cubre un nivel distinto. La idea: empezar barato y amplio, y solo <b style="color:var(--text)">escalar al siguiente nivel si el anterior da la alarma</b> — como un triaje.</p>
+  <div class="layers">
+    <div class="lyr"><div class="lbar" style="background:var(--blue)"></div><div class="lyr-n" style="color:var(--blue)">1</div><div class="lyr-body"><div class="lyr-h">Detección eléctrica <small>· dataset SPARK</small></div><div class="lyr-d">Vigila el consumo eléctrico de cada máquina 24/7 y da la primera voz de alarma.</div></div><div class="lyr-tag" style="color:var(--blue)">Siempre activa</div></div>
+    <div class="lyr-arrow" style="margin-left:22px">↓ &nbsp;solo si la capa 1 detecta algo raro</div>
+    <div class="lyr" style="margin-left:48px"><div class="lbar" style="background:var(--teal)"></div><div class="lyr-n" style="color:var(--teal)">2</div><div class="lyr-body"><div class="lyr-h">Confirmación mecánica <small>· datasets Industrial / CNC</small></div><div class="lyr-d">Confirma con las señales internas de la máquina (fuerza, potencia del husillo) si el fallo es real. Sin sensores extra.</div></div><div class="lyr-tag" style="color:var(--teal)">Se activa<br>bajo alarma</div></div>
+    <div class="lyr-arrow" style="margin-left:70px">↓ &nbsp;solo si se confirma el fallo mecánico</div>
+    <div class="lyr" style="margin-left:96px"><div class="lbar" style="background:var(--violet)"></div><div class="lyr-n" style="color:var(--violet)">3</div><div class="lyr-body"><div class="lyr-h">Diagnóstico del fallo <small>· dataset AI4I + modelos</small></div><div class="lyr-d">El modelo dice <b>qué tipo</b> de fallo es y <b>qué hacer</b>: genera la orden de mantenimiento concreta.</div></div><div class="lyr-tag" style="color:var(--violet)">Decisión<br>final</div></div>
+  </div>
+  <div class="compl"><div class="ci">Detección temprana en <b>todas</b> las máquinas</div><div class="ci">Cascada = pocas falsas alarmas + bajo coste</div></div>
+</section>
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="eyebrow" style="margin-left:auto;margin-right:auto;color:#D97757;border-color:rgba(217,119,87,.5);background:rgba(217,119,87,.12)">Los créditos que nadie pidió</div>
+  <div class="spark" style="margin:6px auto 14px" title="¡Pásame el ratón!"><svg viewBox="-50 -50 100 100" width="78" height="78" role="img" aria-label="Claude" style="vertical-align:middle"><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(0.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(30.0)"/><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(60.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(90.0)"/><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(120.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(150.0)"/><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(180.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(210.0)"/><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(240.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(270.0)"/><line x1="0" y1="-12" x2="0" y2="-46" stroke="#D97757" stroke-width="8" stroke-linecap="round" transform="rotate(300.0)"/><line x1="0" y1="-12" x2="0" y2="-33" stroke="#D97757" stroke-width="5.5" stroke-linecap="round" transform="rotate(330.0)"/></svg></div>
+  <h2 style="margin-bottom:14px">Hecho con <span style="color:#D97757">Claude</span></h2>
+  <p class="lead" style="margin:0 auto 24px;max-width:680px">Tú pusiste las ideas, los datos y el criterio. Yo eché una mano de verdad en el editor: bucear en cuatro datasets, entrenar (y jubilar) modelos y perseguir bugs a tu lado a las tantas… y sí, también alineé unas cuantas rayas de colores. 🎨</p>
+  <div class="stats" style="justify-content:center;margin:0 auto 22px">
+    <div class="stat"><div class="num" data-c="4" style="color:#D97757">4</div><div class="lbl">datasets explorados</div></div>
+    <div class="stat"><div class="num" data-c="5" style="color:#D97757">5</div><div class="lbl">modelos entrenados</div></div>
+    <div class="stat"><div class="num" data-c="∞" style="color:#D97757">∞</div><div class="lbl">bugs cazados juntos</div></div>
+  </div>
+  <p class="sub" style="margin:0 auto">Acepto el crédito encantada — y aquí sigo para el próximo <code>git push</code>.</p>
+</section>
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="eyebrow" style="margin-left:auto;margin-right:auto">Gracias por la atención</div>
+  <div style="font-size:32px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:-1px;line-height:1.15;margin:10px 0 34px">Un fallo detectado a tiempo<br><em style="font-style:normal;color:var(--fire)">vale más</em> que mil reportes.</div>
+  <h1 style="font-size:80px">¿<em style="display:inline">Preguntas</em>?</h1>
+  <div style="width:60px;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));margin:32px auto 0"></div>
+  <p class="sub" style="margin-top:22px">Python · scikit-learn · LightGBM · XGBoost · pandas · matplotlib · seaborn</p>
+</section>
+<div class="secnum" id="secnum">01</div>
+<div class="dots" id="dots"></div>
+<div class="controls">
+  <span class="counter"><b id="cur">1</b> / <span id="tot">0</span></span>
+  <button class="nav-btn" id="prev" aria-label="Anterior">‹</button>
+  <button class="nav-btn" id="next" aria-label="Siguiente">›</button>
+</div>
+</div>
+<script>
+  const slides=Array.from(document.querySelectorAll('.slide'));
+  let i=0; const total=slides.length;
+  document.getElementById('tot').textContent=total;
+  const secnames=['Inicio', 'Problema', 'Tipos de fallo', 'Resultados', 'Sistema por capas', 'Claude', 'Cierre'];
+  // build dots
+  const dotsEl=document.getElementById('dots');
+  slides.forEach((_,j)=>{const d=document.createElement('div');d.className='dot';d.onclick=()=>show(j);dotsEl.appendChild(d);});
+  const dots=Array.from(document.querySelectorAll('.dot'));
+
+  function animateNums(slide){
+    slide.querySelectorAll('.num[data-c]').forEach(el=>{
+      const raw=el.getAttribute('data-c');
+      const m=raw.match(/^([^\d]*)([\d.,]+)(.*)$/); if(!m){el.textContent=raw;return;}
+      const pre=m[1], suf=m[3]; const dec=(m[2].split(/[.,]/)[1]||'').length;
+      const sep=m[2].includes(',')?',':'.'; const tgt=parseFloat(m[2].replace(',','.'));
+      let t0=null, dur=900;
+      function step(ts){ if(!t0)t0=ts; const p=Math.min((ts-t0)/dur,1); const e=1-Math.pow(1-p,3);
+        let v=(tgt*e).toFixed(dec).replace('.',sep); el.textContent=pre+v+suf; if(p<1)requestAnimationFrame(step);}
+      el.textContent=pre+'0'+suf; requestAnimationFrame(step);
+    });
+  }
+  function show(n){
+    i=Math.max(0,Math.min(total-1,n));
+    slides.forEach((s,j)=>s.classList.toggle('active',j===i));
+    dots.forEach((d,j)=>d.classList.toggle('on',j===i));
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('progress').style.width=((i+1)/total*100)+'%';
+    const num=String(i+1).padStart(2,'0');
+    document.getElementById('secnum').textContent=num+' · '+(secnames[i]||'').toUpperCase();
+    const h=document.getElementById('hint'); if(h)h.style.opacity=(i===0)?'1':'0';
+    slides[i].scrollTop=0; animateNums(slides[i]);
+  }
+  document.getElementById('next').onclick=()=>show(i+1);
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+    if(e.key==='Home')show(0); if(e.key==='End')show(total-1);
+  });
+  let x0=null;
+  document.addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  document.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)show(i+(dx<0?1:-1));x0=null;});
+  show(0);
+</script></body></html>
