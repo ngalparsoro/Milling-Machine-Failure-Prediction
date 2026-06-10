@@ -1,6 +1,7 @@
 # Datos demasiado grandes para GitHub (>100MB)
 data/processed/spark_tec
 data/processed/spark_tec_scored.parquet
+data/processed/spark_tec_1min.parquet
 data/raw/kit_extracted/
 data/raw/tec_extracted/
 data/raw/cnc_extracted/
