@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resumen · Parada de Máquina</title><style>
+<title>Resumen · márgenes reducidos · Parada de Máquina</title><style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg:#0A0C0F; --panel:#111518; --border:#1E2530;
@@ -17,7 +17,7 @@
   /* ── SLIDES (transición suave crossfade) ── */
   .slide{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;
     padding:60px 80px 96px;
-    padding-left:max(56px,calc((100% - 1300px)/2));padding-right:max(56px,calc((100% - 1300px)/2));
+    padding-left:44px;padding-right:44px;
     opacity:0;visibility:hidden;transform:translateY(26px) scale(.992);
     transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1),visibility .55s;
     z-index:1;overflow-y:auto;}
@@ -198,7 +198,7 @@
 </style></head><body><div class="deck">
 <div class="progress" id="progress"></div>
 <div class="logo">⬡ Parada de Máquina</div>
-<section class="slide" style="padding-left:max(40px,calc((100% - 1300px)/4));padding-right:max(40px,calc((100% - 1300px)/4))">
+<section class="slide" style="padding-left:44px;padding-right:44px">
   <div class="hero-img"><img src="hero-machine.jpg" alt="Máquina industrial"></div>
   <div class="eyebrow">Proyecto ML · Bootcamp Data Science</div>
   <h1>Predecir<br>cuándo una<br><em>máquina va a fallar</em></h1>
