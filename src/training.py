@@ -42,31 +42,9 @@ SPLITS_PKL = os.path.join(ROOT, "data", "processed", "splits.pkl")
 MODELS_DIR = os.path.join(ROOT, "models")
 os.makedirs(MODELS_DIR, exist_ok=True)
 
-# ── Hiperparámetros óptimos (obtenidos con Optuna en notebooks 05-07) ─────────
-LGBM_PARAMS = {
-    "colsample_bytree":  0.7183,
-    "learning_rate":     0.030,
-    "min_child_samples": 32,
-    "n_estimators":      127,
-    "num_leaves":        63,
-    "reg_alpha":         0.4165,
-    "reg_lambda":        0.8833,
-    "subsample":         0.6488,
-    "scale_pos_weight":  42.78,
-    "random_state":      42,
-    "verbose":           -1,
-}
-
-RF_PARAMS = {
-    "n_estimators":      418,
-    "max_depth":         18,
-    "min_samples_split": 5,
-    "min_samples_leaf":  2,
-    "max_features":      0.3,
-    "class_weight":      "balanced_subsample",
-    "random_state":      42,
-    "n_jobs":            -1,
-}
+# ── Hiperparámetros óptimos — única fuente de verdad en src/utils.py ──────────
+# (obtenidos con Optuna en los notebooks 05_01_1 y 05_01_2)
+from utils import LGBM_BEST_PARAMS as LGBM_PARAMS, RF_BEST_PARAMS as RF_PARAMS
 
 
 def find_optimal_threshold(y_true, y_prob, min_recall=0.85):

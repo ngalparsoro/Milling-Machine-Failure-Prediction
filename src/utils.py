@@ -39,6 +39,25 @@ FEAT_NAMES = [
 
 TWF_MIN = {"L": 200, "M": 220, "H": 240}
 
+# Mejores hiperparámetros del LightGBM afinado (notebook 05_01_1_LightGBM).
+# Única fuente de verdad: antes estaban copiados a mano en 4 notebooks y
+# quedaban desincronizados al re-ejecutar el tuning.
+LGBM_BEST_PARAMS = dict(
+    colsample_bytree=0.7183, learning_rate=0.030,
+    min_child_samples=32, n_estimators=127, num_leaves=63,
+    reg_alpha=0.4165, reg_lambda=0.8833, subsample=0.6488,
+    scale_pos_weight=42.78, random_state=42, verbose=-1,
+)
+
+# Mejores hiperparámetros del Random Forest afinado (notebook 05_01_2_RF).
+# Los usa la construcción del modelo de producción (06_03 y src/training.py).
+RF_BEST_PARAMS = dict(
+    n_estimators=418, max_depth=18,
+    min_samples_split=5, min_samples_leaf=2,
+    max_features=0.3, class_weight="balanced_subsample",
+    random_state=42, n_jobs=-1,
+)
+
 
 # ── Funciones ─────────────────────────────────────────────────────────────────
 
@@ -87,13 +106,14 @@ def get_splits(df, test_size=0.2, random_state=42):
     y = df["Machine failure"].values
     idx = np.arange(len(df))
 
-    scaler   = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
+    # Split primero, escalar después: el scaler se ajusta SOLO con train
+    # para no filtrar información del test (data leakage).
     X_train, X_test, y_train, y_test, i_train, i_test = train_test_split(
-        X_scaled, y, idx,
+        X, y, idx,
         test_size=test_size,
         random_state=random_state,
         stratify=y,
     )
-    return X_train, X_test, y_train, y_test, i_train, i_test, scaler
+    scaler = StandardScaler().fit(X_train)
+    return (scaler.transform(X_train), scaler.transform(X_test),
+            y_train, y_test, i_train, i_test, scaler)
