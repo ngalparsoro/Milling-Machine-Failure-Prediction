@@ -1,10 +1,13 @@
-# Datos demasiado grandes para GitHub (>100MB)
-data/processed/spark_tec
-data/processed/spark_tec_scored.parquet
-data/processed/spark_tec_1min.parquet
+# Datos crudos (decenas de GB, no caben en GitHub)
 data/raw/kit_extracted/
 data/raw/tec_extracted/
 data/raw/cnc_extracted/
+
+# Parquets intermedios — artefactos regenerables desde data/raw con los notebooks.
+# No se versionan: inflan el repo (binarios que no hacen delta) y algunos rozan
+# el aviso de 50MB de GitHub.
+data/processed/*.parquet
+data/processed/spark_tec
 
 # Python
 __pycache__/
