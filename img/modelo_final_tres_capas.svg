@@ -1,0 +1,102 @@
+<svg viewBox="0 0 820 880" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" role="img" aria-label="Modelo final de tres capas — Parada de Máquina">
+  <title>Modelo final de tres capas — Parada de Máquina</title>
+  <desc>Arquitectura de escalada: Capa 1 detección eléctrica (SPARK, Isolation Forest, siempre activa) escala a Capa 2 confirmación mecánica (KIT/CNC, Random Forest) y luego a Capa 3 clasificación de fallo (AI4I, StackingClassifier), que emite la orden de mantenimiento.</desc>
+
+  <rect x="0" y="0" width="820" height="880" fill="#ffffff"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#4f46e5"/>
+    </marker>
+  </defs>
+
+  <style>
+    .t   { fill: #1a1a1a; }
+    .ts  { fill: #6b6b6b; }
+    .inv { fill: #ffffff; }
+    .card{ fill: #f6f6f4; stroke: #e2e2dd; }
+    .h1  { font-size: 25px; font-weight: 700; }
+    .sub { font-size: 13.5px; }
+    .lt  { font-size: 17px; font-weight: 700; }
+    .ds  { font-size: 12.5px; font-weight: 700; }
+    .bd  { font-size: 13px; }
+    .bdb { font-size: 13px; font-weight: 700; }
+    .flow{ font-size: 12px; font-weight: 700; fill: #4f46e5; }
+  </style>
+
+  <!-- Title -->
+  <text x="32" y="40" class="t h1">Modelo final · Pipeline de 3 capas</text>
+  <text x="32" y="64" class="ts sub">Mantenimiento predictivo por escalada — cada capa solo se activa si la anterior alerta</text>
+
+  <!-- INPUT -->
+  <rect x="250" y="86" width="320" height="40" rx="20" class="card"/>
+  <text x="410" y="111" text-anchor="middle" class="ts bdb">Señales de máquina en tiempo real (1 min)</text>
+  <line x1="410" y1="126" x2="410" y2="158" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ===== CAPA 1 ===== -->
+  <rect x="32" y="162" width="756" height="158" rx="14" class="card"/>
+  <rect x="32" y="162" width="6" height="158" rx="3" fill="#c7d2fe"/>
+  <circle cx="74" cy="200" r="19" fill="#4f46e5"/>
+  <text x="74" y="206" text-anchor="middle" class="inv" font-size="17" font-weight="700">1</text>
+  <text x="106" y="195" class="t lt">Detección eléctrica</text>
+  <text x="106" y="215" class="ts bd">Vigilancia continua · siempre activa en cualquier máquina</text>
+
+  <rect x="106" y="232" width="120" height="24" rx="6" fill="#eef0fb"/>
+  <text x="166" y="248" text-anchor="middle" class="ds" fill="#4f46e5">Dataset · SPARK</text>
+  <text x="240" y="248" class="bdb t">Isolation Forest</text>
+  <text x="240" y="268" class="ts bd">(no supervisado, por máquina)</text>
+
+  <text x="106" y="292" class="ts bd"><tspan class="bdb t">Entrada: </tspan>P_total, corrientes I1/I2/I3, THD, PF (pinzas amperimétricas)</text>
+  <text x="106" y="311" class="ts bd"><tspan class="bdb t">Salida: </tspan>anomaly_score → ¿anomalía eléctrica?</text>
+
+  <!-- arrow 1->2 -->
+  <line x1="410" y1="320" x2="410" y2="360" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="424" y="345" class="flow">▶ score &lt; umbral L1 · anomalía detectada</text>
+
+  <!-- ===== CAPA 2 ===== -->
+  <rect x="32" y="364" width="756" height="158" rx="14" class="card"/>
+  <rect x="32" y="364" width="6" height="158" rx="3" fill="#818cf8"/>
+  <circle cx="74" cy="402" r="19" fill="#4f46e5"/>
+  <text x="74" y="408" text-anchor="middle" class="inv" font-size="17" font-weight="700">2</text>
+  <text x="106" y="397" class="t lt">Confirmación mecánica</text>
+  <text x="106" y="417" class="ts bd">Solo si Capa 1 alerta · descarta falsas alarmas eléctricas</text>
+
+  <rect x="106" y="434" width="190" height="24" rx="6" fill="#eef0fb"/>
+  <text x="201" y="450" text-anchor="middle" class="ds" fill="#4f46e5">Dataset · KIT → CNC</text>
+  <text x="310" y="450" class="bdb t">Random Forest</text>
+
+  <text x="106" y="478" class="ts bd"><tspan class="bdb t">Prototipo: </tspan>features KIT del husillo (torque, potencia, corriente, carga)</text>
+  <text x="106" y="497" class="ts bd"><tspan class="bdb t">Producción: </tspan>señales CNC internas (OPC-UA), reentrenable en planta</text>
+  <text x="106" y="515" class="ts bd"><tspan class="bdb t">Salida: </tspan>P(fallo mecánico) → ¿fallo confirmado?</text>
+
+  <!-- arrow 2->3 -->
+  <line x1="410" y1="522" x2="410" y2="562" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="424" y="547" class="flow">▶ P(mecánico) &gt; umbral L2 · fallo confirmado</text>
+
+  <!-- ===== CAPA 3 ===== -->
+  <rect x="32" y="566" width="756" height="158" rx="14" class="card"/>
+  <rect x="32" y="566" width="6" height="158" rx="3" fill="#4f46e5"/>
+  <circle cx="74" cy="604" r="19" fill="#4f46e5"/>
+  <text x="74" y="610" text-anchor="middle" class="inv" font-size="17" font-weight="700">3</text>
+  <text x="106" y="599" class="t lt">Clasificación del fallo</text>
+  <text x="106" y="619" class="ts bd">Solo si Capa 2 confirma · identifica el tipo y la acción</text>
+
+  <rect x="106" y="636" width="130" height="24" rx="6" fill="#eef0fb"/>
+  <text x="171" y="652" text-anchor="middle" class="ds" fill="#4f46e5">Dataset · AI4I</text>
+  <text x="250" y="652" class="bdb t">StackingClassifier</text>
+  <text x="250" y="671" class="ts bd">LightGBM + Random Forest → Logistic Regression</text>
+
+  <text x="106" y="697" class="ts bd"><tspan class="bdb t">Entrada: </tspan>parámetros de proceso MES/SCADA · <tspan class="bdb t">Umbral: </tspan>0.984</text>
+  <text x="106" y="716" class="ts bd"><tspan class="bdb t">Salida: </tspan>tipo de fallo (TWF / HDF / PWF / OSF / RNF)</text>
+
+  <!-- arrow 3->action -->
+  <line x1="410" y1="724" x2="410" y2="760" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ACTION -->
+  <rect x="220" y="764" width="380" height="48" rx="12" fill="#4f46e5"/>
+  <text x="410" y="786" text-anchor="middle" class="inv" font-size="15" font-weight="700">Orden de mantenimiento específica</text>
+  <text x="410" y="804" text-anchor="middle" class="inv" font-size="12" opacity="0.9">antes de la parada · ahorro estimado ~€6,94 M/año</text>
+
+  <!-- footer metric -->
+  <text x="410" y="844" text-anchor="middle" class="ts" font-size="12.5">Rendimiento Capa 3 (modelo de producción):  F1 = 0.89 · Recall = 0.85 · AUC = 0.98</text>
+</svg>

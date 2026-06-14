@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="img/readme-banner.svg" alt="Predicción de Parada de Máquina" width="100%">
+</p>
+
 # Predicción de Parada de Máquina — Proyecto ML
 
 Sistema de **mantenimiento predictivo industrial** basado en Machine Learning,
@@ -48,6 +52,10 @@ falsa alarma ~300 €), la Capa 3 evita ~81 % de ese coste → **≈ 0,83 M€/a
 ---
 
 ## Arquitectura del sistema
+
+<p align="center">
+  <img src="img/modelo_final_tres_capas.svg" alt="Pipeline de 3 capas" width="680">
+</p>
 
 ```
 CAPA 1 — Detección eléctrica          [siempre activa, 1 min]
