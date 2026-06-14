@@ -95,7 +95,7 @@
   <!-- ACTION -->
   <rect x="220" y="764" width="380" height="48" rx="12" fill="#4f46e5"/>
   <text x="410" y="786" text-anchor="middle" class="inv" font-size="15" font-weight="700">Orden de mantenimiento específica</text>
-  <text x="410" y="804" text-anchor="middle" class="inv" font-size="12" opacity="0.9">antes de la parada · ahorro estimado ~€6,94 M/año</text>
+  <text x="410" y="804" text-anchor="middle" class="inv" font-size="12" opacity="0.9">antes de que se produzca la parada</text>
 
   <!-- footer metric -->
   <text x="410" y="844" text-anchor="middle" class="ts" font-size="12.5">Rendimiento Capa 3 (modelo de producción):  F1 = 0.89 · Recall = 0.85 · AUC = 0.98</text>
