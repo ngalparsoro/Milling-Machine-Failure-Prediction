@@ -68,7 +68,7 @@ def train():
 
     X_train, X_test, y_train, y_test = splits["ai4i"]
 
-    MODELS_PKL = os.path.join(ROOT, "data", "processed", "models.pkl")
+    MODELS_PKL = os.path.join(MODELS_DIR, "models.pkl")
     with open(MODELS_PKL, "rb") as f:
         saved_models = pickle.load(f)
     scaler = saved_models.get("stage2_scaler") or saved_models.get("scaler")
