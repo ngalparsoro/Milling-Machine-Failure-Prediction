@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mantenimiento Predictivo — Producto</title>
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#0B0D11; --panel:#14181F; --border:#232A35;
+    --rust:#C24310; --fire:#F26419; --amber:#F2A33C; --copper:#C2772E;
+    --metal:#6B7C8C; --light:#C4D0DA; --text:#E3EAF0; --dim:#808E9C;
+    --green:oklch(0.72 0.10 150); --red:oklch(0.64 0.15 28);
+    --blue:oklch(0.68 0.09 245); --violet:oklch(0.66 0.10 295); --teal:oklch(0.71 0.09 195);
+  }
+  html, body { height:100%; }
+  body { font-family:'Segoe UI', system-ui, sans-serif; background:#050608; color:var(--text); line-height:1.6; overflow:hidden; }
+  .stage { position:fixed; inset:0; background:#050608; overflow:hidden; }
+  .deck { width:1280px; height:720px; position:absolute; top:50%; left:50%; transform-origin:center center; transform:translate(-50%,-50%) scale(1); background:var(--bg); overflow:hidden; box-shadow:0 30px 100px rgba(0,0,0,.55); }
+  .deck::before { content:''; position:absolute; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(200,80,10,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,80,10,.04) 1px,transparent 1px); background-size:44px 44px; }
+  .deck::after { content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,.42) 100%); }
+
+  .slide { position:absolute; inset:0; display:none; flex-direction:column; justify-content:center; padding:74px 80px; opacity:0; transition:opacity .4s ease; z-index:1; overflow:hidden; }
+  .slide { padding-left:max(72px,calc((100% - 1040px)/2)); padding-right:max(72px,calc((100% - 1040px)/2)); }
+  .slide.active { display:flex; opacity:1; }
+
+  .eyebrow { font-size:11px; font-weight:900; letter-spacing:4px; text-transform:uppercase; color:var(--fire); margin-bottom:16px; display:inline-flex; align-items:center; gap:10px; background:rgba(232,74,10,.12); border:1px solid rgba(232,74,10,.4); padding:6px 16px 6px 12px; width:fit-content; max-width:fit-content; clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%); }
+  .eyebrow::before { content:''; display:block; width:24px; height:2px; background:var(--fire); }
+  h1 { font-size:62px; font-weight:900; line-height:.98; color:#fff; text-transform:uppercase; letter-spacing:-2px; }
+  h1 em { font-style:normal; color:var(--fire); display:block; }
+  h2 { font-size:42px; font-weight:900; text-transform:uppercase; letter-spacing:-1px; color:#fff; line-height:1; margin-bottom:24px; }
+  h2 span { color:var(--fire); }
+  .lead { font-size:19px; color:var(--light); max-width:840px; line-height:1.5; }
+  .sub { font-size:15px; color:var(--dim); max-width:840px; }
+  .hl { color:var(--fire); font-weight:800; } .hlg { color:var(--green); font-weight:800; }
+
+  .hero-slash { position:absolute; inset:0; z-index:-1; background:linear-gradient(105deg,var(--rust) 0%,var(--fire) 100%); clip-path:polygon(0 0,38% 0,28% 100%,0 100%); opacity:.12; }
+  .hero-img { position:absolute; right:0; top:0; bottom:0; width:52%; pointer-events:none; z-index:-1; }
+  .hero-img img { width:100%; height:100%; object-fit:cover; object-position:center right; mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.4) 25%,rgba(0,0,0,.8) 60%,#000 100%); -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.4) 25%,rgba(0,0,0,.8) 60%,#000 100%); }
+
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+  .blk { background:var(--panel); padding:24px; border:1px solid var(--border); position:relative; overflow:hidden; }
+  .blk::after { content:''; position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(90deg,var(--rust),var(--fire)); }
+  .blk.bar-blue::after{background:var(--blue);} .blk.bar-green::after{background:var(--green);} .blk.bar-fire::after{background:linear-gradient(90deg,var(--rust),var(--fire));} .blk.bar-violet::after{background:var(--violet);} .blk.bar-teal::after{background:var(--teal);} .blk.bar-amber::after{background:var(--amber);} .blk.bar-red::after{background:var(--red);}
+  .blk-label { font-size:11px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color:var(--fire); margin-bottom:10px; display:inline-flex; align-items:center; padding:4px 12px; border:1px solid currentColor; background:rgba(255,255,255,.05); clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%); }
+  .blk h3 { font-size:17px; font-weight:800; color:#fff; margin-bottom:7px; text-transform:uppercase; letter-spacing:.5px; }
+  .blk p { font-size:14px; color:var(--dim); line-height:1.5; }
+
+  .stats { display:flex; gap:0; margin-top:6px; }
+  .stat { padding:12px 34px 12px 0; border-right:1px solid var(--border); margin-right:30px; }
+  .stat:last-child { border-right:none; }
+  .stat .num { font-size:46px; font-weight:900; color:var(--fire); line-height:1; letter-spacing:-1px; }
+  .stat .lbl { font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-top:6px; }
+  .stat.green .num { color:var(--green); }
+
+  ul.clean { list-style:none; } ul.clean li { font-size:15px; color:var(--light); padding:9px 0 9px 22px; position:relative; border-bottom:1px solid var(--border); }
+  ul.clean li::before { content:'▸'; position:absolute; left:0; color:var(--fire); font-weight:900; } ul.clean li b { color:#fff; }
+  ul.clean li:last-child { border-bottom:none; }
+
+  .callout { border-left:3px solid var(--rust); padding:8px 0 8px 18px; font-size:15px; color:var(--light); }
+
+  /* ── INTERACTIVIDAD ── */
+  .blk { transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+  .blk:hover { transform:translateY(-4px); border-color:rgba(242,100,25,.6); box-shadow:0 14px 34px rgba(0,0,0,.5); }
+  .lyr { transition:transform .18s ease, border-color .18s ease; }
+  .lyr:hover { transform:translateX(5px); border-color:rgba(242,100,25,.5); }
+  .rstep { transition:transform .18s ease, border-color .18s ease; }
+  .rstep:hover { transform:translateY(-3px); border-color:rgba(242,100,25,.55); }
+  .crow .cbar { transition:width .8s cubic-bezier(.2,.7,.2,1); }
+
+  /* cost waterfall bars */
+  .cost { display:flex; flex-direction:column; gap:16px; }
+  .crow { display:grid; grid-template-columns:230px 1fr 150px; align-items:center; gap:18px; }
+  .crow .ck { font-size:14px; font-weight:700; color:var(--text); }
+  .crow .ck small { display:block; font-size:11px; color:var(--dim); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+  .crow .ctrack { height:34px; background:rgba(255,255,255,.03); border:1px solid var(--border); position:relative; overflow:hidden; }
+  .crow .cbar { position:absolute; left:0; top:0; bottom:0; }
+  .crow .cbar.bad { background:linear-gradient(90deg,var(--rust),var(--fire)); }
+  .crow .cbar.good { background:linear-gradient(90deg,oklch(0.55 0.10 150),var(--green)); }
+  .crow .cv { font-size:22px; font-weight:900; text-align:right; }
+  .crow .cv.bad { color:var(--fire); } .crow .cv.good { color:var(--green); }
+
+  /* layer bands */
+  .layers { display:flex; flex-direction:column; gap:0; max-width:940px; }
+  .lyr { display:flex; align-items:center; gap:22px; border:1px solid var(--border); padding:15px 26px; position:relative; background:var(--panel); clip-path:polygon(0 0,100% 0,100% 100%,14px 100%); }
+  .lyr .lbar { position:absolute; left:0; top:0; bottom:0; width:5px; }
+  .lyr-n { font-size:30px; font-weight:900; line-height:1; min-width:52px; letter-spacing:-1px; }
+  .lyr-body { flex:1; } .lyr-h { font-size:15px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:.5px; }
+  .lyr-h small { font-size:12px; font-weight:700; color:var(--dim); text-transform:none; letter-spacing:0; margin-left:8px; }
+  .lyr-d { font-size:13.5px; color:var(--dim); margin-top:3px; }
+  .lyr-tag { font-size:11px; font-weight:800; color:var(--metal); text-transform:uppercase; letter-spacing:1px; text-align:right; min-width:112px; }
+  .lyr-arrow { color:var(--metal); font-size:12px; font-weight:800; letter-spacing:1px; padding:4px 0; text-transform:uppercase; }
+  .slide.vivid { --blue:#2E9BFF; --teal:#15D4C0; --violet:#AC6BFF; }
+
+  /* big highlight number block */
+  .hero-num { display:flex; align-items:baseline; gap:10px; }
+  .hero-num .n { font-size:96px; font-weight:900; color:var(--green); line-height:.9; letter-spacing:-3px; }
+  .hero-num .u { font-size:34px; font-weight:900; color:var(--green); }
+
+  /* roadmap */
+  .road { display:flex; align-items:stretch; gap:0; margin-top:10px; }
+  .rstep { flex:1; background:var(--panel); border:1px solid var(--border); padding:20px 18px; position:relative; clip-path:polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%,16px 50%); }
+  .rstep:first-child { clip-path:polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%); }
+  .rstep .rn { font-size:11px; font-weight:900; color:var(--rust); letter-spacing:2px; }
+  .rstep .rt { font-size:15px; font-weight:800; color:#fff; text-transform:uppercase; margin-top:6px; letter-spacing:.5px; }
+  .rstep .rd { font-size:12.5px; color:var(--dim); margin-top:6px; }
+
+  /* entrance animation */
+  @keyframes riseIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+  .slide.active .eyebrow { animation:riseIn .45s cubic-bezier(.2,.7,.2,1) both; }
+  .slide.active h1, .slide.active h2 { animation:riseIn .5s cubic-bezier(.2,.7,.2,1) .06s both; }
+  .slide.active .lead, .slide.active .sub { animation:riseIn .5s cubic-bezier(.2,.7,.2,1) .14s both; }
+  .slide.active .grid2,.slide.active .grid3,.slide.active .stats,.slide.active ul.clean,.slide.active .cost,.slide.active .layers,.slide.active .hero-num,.slide.active .road,.slide.active .callout { animation:riseIn .55s cubic-bezier(.2,.7,.2,1) .22s both; }
+  @media (prefers-reduced-motion:reduce){ .slide.active *{animation:none!important;} }
+
+  .progress { position:absolute; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--rust),var(--fire)); z-index:50; transition:width .4s; }
+  .logo { position:absolute; top:28px; left:64px; z-index:45; font-size:11px; font-weight:900; color:var(--fire); letter-spacing:3px; text-transform:uppercase; }
+  .controls { position:absolute; bottom:24px; right:64px; z-index:45; display:flex; align-items:center; gap:14px; }
+  .counter { font-size:12px; color:var(--dim); letter-spacing:2px; font-weight:700; } .counter b { color:var(--fire); }
+  .nav-btn { width:38px; height:38px; border:1px solid var(--border); background:rgba(17,21,24,.7); color:var(--text); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:.15s; }
+  .nav-btn:hover { border-color:var(--fire); color:var(--fire); background:var(--panel); }
+  .secnum { position:absolute; bottom:28px; left:64px; z-index:45; font-size:11px; font-weight:900; letter-spacing:3px; color:var(--rust); text-transform:uppercase; }
+  .hint { position:absolute; bottom:28px; left:50%; transform:translateX(-50%); z-index:45; font-size:11px; color:var(--dim); letter-spacing:1px; }
+</style>
+</head>
+<body>
+<div class="stage"><div class="deck">
+<div class="progress" id="progress"></div>
+<div class="logo">⬡ Mantenimiento Predictivo</div>
+
+<!-- 1 · PORTADA -->
+<section class="slide active">
+  <div class="hero-slash"></div>
+  <div class="hero-img"><img src="img/hero-machine.jpg" alt="Máquina industrial"></div>
+  <div class="eyebrow">Mantenimiento predictivo · Producto</div>
+  <h1>Detén la avería<br><em>antes de que ocurra</em></h1>
+  <p class="lead" style="margin-top:22px;border-left:3px solid var(--rust);padding-left:18px">
+    Un sistema que escucha los sensores que tu máquina <span class="hl">ya tiene</span>
+    y avisa del fallo con antelación — sin instalar hardware nuevo.
+  </p>
+  <div class="stats" style="margin-top:34px">
+    <div class="stat green"><div class="num">85 %</div><div class="lbl">Menos coste de fallos</div></div>
+    <div class="stat green"><div class="num">6,9 M€</div><div class="lbl">Ahorro estimado/año</div></div>
+    <div class="stat"><div class="num">0</div><div class="lbl">Sensores nuevos</div></div>
+  </div>
+</section>
+
+<!-- 2 · EL DOLOR -->
+<section class="slide">
+  <div class="eyebrow">El problema · en euros</div>
+  <h2>Una parada imprevista <span>lo para todo</span></h2>
+  <p class="lead" style="margin-bottom:26px">
+    Cuando una máquina cae sin avisar, se detiene la línea entera. La reparación de urgencia
+    cuesta <span class="hl">miles de euros por hora</span>… y nadie lo vio venir.
+  </p>
+  <div class="grid3">
+    <div class="blk bar-red"><div class="blk-label" style="color:var(--red)">Coste directo</div><h3>~10.000 € por fallo</h3><p>Parada de producción + reparación de emergencia + piezas urgentes.</p></div>
+    <div class="blk bar-amber"><div class="blk-label" style="color:var(--amber)">Coste oculto</div><h3>Plazos rotos</h3><p>Pedidos retrasados, penalizaciones y horas extra para recuperar.</p></div>
+    <div class="blk bar-fire"><div class="blk-label">Lo peor</div><h3>Era evitable</h3><p>La máquina dejó pistas en sus datos. Solo faltaba alguien escuchándolas.</p></div>
+  </div>
+  <p class="sub" style="margin-top:22px">En fabricación, cada evento de parada cuesta entre <b style="color:var(--text)">5.000 y 50.000 €</b>. El problema no es arreglar — es no haberlo anticipado.</p>
+</section>
+
+<!-- 3 · TRES FORMAS DE MANTENER -->
+<section class="slide">
+  <div class="eyebrow">El cambio de modelo</div>
+  <h2>Tres formas de <span>mantener</span></h2>
+  <p class="sub" style="margin-bottom:24px">El mantenimiento predictivo no es un lujo: es la opción que evita gastar de más y de menos a la vez.</p>
+  <div class="grid3">
+    <div class="blk bar-red">
+      <div class="blk-label" style="color:var(--red)">Reactivo · hoy</div>
+      <h3>Arreglar cuando rompe</h3>
+      <p>Se espera al fallo. Parada total e inesperada. El más caro a largo plazo.</p>
+    </div>
+    <div class="blk bar-amber">
+      <div class="blk-label" style="color:var(--amber)">Por calendario</div>
+      <h3>Revisar cada X horas</h3>
+      <p>Mantenimiento fijo, falle o no. Se cambian piezas sanas y aún hay sorpresas.</p>
+    </div>
+    <div class="blk bar-green">
+      <div class="blk-label" style="color:var(--green)">Predictivo · nosotros</div>
+      <h3>Intervenir justo a tiempo</h3>
+      <p>El modelo avisa solo cuando hay riesgo real. Ni de más, ni de menos.</p>
+    </div>
+  </div>
+  <p class="callout" style="margin-top:22px">Pasamos de <b>"esperar a que rompa"</b> a <b style="color:var(--green)">"actuar sobre la evidencia"</b>: la máquina te dice cuándo necesita atención.</p>
+</section>
+
+<!-- 4 · LA SOLUCIÓN -->
+<section class="slide">
+  <div class="eyebrow">La solución</div>
+  <h2>Alerta temprana <span>con tus datos</span></h2>
+  <p class="lead" style="margin-bottom:24px">
+    Conectamos un modelo de IA a las señales que tus máquinas ya generan —consumo, temperatura,
+    fuerza, vibración— y lo convertimos en avisos accionables antes del fallo.
+  </p>
+  <div class="grid2">
+    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">Caza el 85 % de los fallos</div><h3>Pocas alarmas falsas</h3><p>De cada 100 alarmas, 94 son fallos reales. El equipo confía en el aviso y actúa.</p></div>
+    <div class="blk bar-blue"><div class="blk-label">Sin hardware nuevo</div><h3>Usa lo que ya hay</h3><p>Aprovecha sensores existentes y el controlador CNC. Despliegue rápido y barato.</p></div>
+    <div class="blk bar-violet"><div class="blk-label" style="color:var(--violet)">Multi-máquina</div><h3>Fresadoras, tornos, EDM</h3><p>Validado sobre 11 máquinas reales de distintos tipos durante un año.</p></div>
+    <div class="blk bar-amber"><div class="blk-label" style="color:var(--amber)">Explicable</div><h3>Dice por qué</h3><p>No es una caja negra: señala qué variable dispara el riesgo y qué revisar.</p></div>
+  </div>
+</section>
+
+<!-- 5 · CÓMO FUNCIONA (3 CAPAS) -->
+<section class="slide vivid">
+  <div class="eyebrow">Cómo funciona</div>
+  <h2>Un sistema de <span>3 niveles</span></h2>
+  <p class="sub" style="margin-bottom:18px">Como un triaje médico: vigilancia barata y continua primero; análisis detallado solo cuando hay señal. Empieza a aportar valor desde el primer nivel.</p>
+  <div class="layers">
+    <div class="lyr">
+      <div class="lbar" style="background:var(--blue)"></div>
+      <div class="lyr-n" style="color:var(--blue)">1</div>
+      <div class="lyr-body"><div class="lyr-h">Vigilancia eléctrica <small>· 24/7</small></div><div class="lyr-d">Monitoriza el consumo de cada máquina cada minuto y da la primera alarma.</div></div>
+      <div class="lyr-tag" style="color:var(--blue)">Siempre activa</div>
+    </div>
+    <div class="lyr-arrow" style="margin-left:22px">↓ &nbsp;si detecta algo raro</div>
+    <div class="lyr" style="margin-left:46px">
+      <div class="lbar" style="background:var(--teal)"></div>
+      <div class="lyr-n" style="color:var(--teal)">2</div>
+      <div class="lyr-body"><div class="lyr-h">Confirmación mecánica</div><div class="lyr-d">Comprueba con las señales internas de la máquina si el riesgo es real. Sin sensores extra.</div></div>
+      <div class="lyr-tag" style="color:var(--teal)">Bajo alarma</div>
+    </div>
+    <div class="lyr-arrow" style="margin-left:70px">↓ &nbsp;si se confirma</div>
+    <div class="lyr" style="margin-left:94px">
+      <div class="lbar" style="background:var(--violet)"></div>
+      <div class="lyr-n" style="color:var(--violet)">3</div>
+      <div class="lyr-body"><div class="lyr-h">Diagnóstico y orden de trabajo</div><div class="lyr-d">Identifica el tipo de fallo y genera la acción de mantenimiento concreta.</div></div>
+      <div class="lyr-tag" style="color:var(--violet)">Decisión final</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · RESULTADOS QUE IMPORTAN -->
+<section class="slide">
+  <div class="eyebrow">Lo que consigue</div>
+  <h2>Resultados que <span>importan</span></h2>
+  <p class="sub" style="margin-bottom:22px">Medido sobre datos reales de máquina, con el sistema ajustado para avisar solo cuando hace falta.</p>
+  <div class="stats">
+    <div class="stat green"><div class="num">85 %</div><div class="lbl">de los fallos<br>detectados a tiempo</div></div>
+    <div class="stat green"><div class="num">94 %</div><div class="lbl">de las alarmas<br>son reales</div></div>
+    <div class="stat"><div class="num">24/7</div><div class="lbl">vigilancia<br>continua</div></div>
+  </div>
+  <p class="callout" style="margin-top:30px">Pocas alarmas y casi todas ciertas: el equipo de planta <b>confía</b> en el sistema y actúa rápido, en vez de ignorar avisos como pasa con las alarmas ruidosas.</p>
+</section>
+
+<!-- 7 · IMPACTO ECONÓMICO -->
+<section class="slide">
+  <div class="eyebrow">El caso de negocio</div>
+  <h2>De 8,2 M€ a <span>1,2 M€</span></h2>
+  <p class="sub" style="margin-bottom:24px">Coste anual estimado de los fallos de una flota de máquinas, según el escenario de mantenimiento.</p>
+  <div class="cost">
+    <div class="crow">
+      <div class="ck">Sin modelo <small>reactivo</small></div>
+      <div class="ctrack"><div class="cbar bad" style="width:100%"></div></div>
+      <div class="cv bad">8,16 M€</div>
+    </div>
+    <div class="crow">
+      <div class="ck">Con predictivo <small>producción</small></div>
+      <div class="ctrack"><div class="cbar good" style="width:14.9%"></div></div>
+      <div class="cv good">1,22 M€</div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:28px">
+    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">Ahorro</div><h3 style="color:var(--green)">6,94 M€/año</h3><p>Diferencia directa entre reactivo y predictivo.</p></div>
+    <div class="blk bar-fire"><div class="blk-label">Reducción</div><h3>85 %</h3><p>Del coste total asociado a fallos no detectados.</p></div>
+    <div class="blk bar-blue"><div class="blk-label">De dónde sale</div><h3 style="text-transform:none">10.000 € vs 300 €</h3><p>Lo que cuesta un fallo no detectado frente a una simple revisión preventiva.</p></div>
+  </div>
+</section>
+
+<!-- 8 · ROI -->
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="eyebrow" style="margin-left:auto;margin-right:auto">Retorno de la inversión</div>
+  <h2 style="margin-bottom:14px">Cada euro evitado <span>es margen</span></h2>
+  <div class="hero-num" style="margin:14px 0 8px"><span class="n">6,94 M€</span><span class="u">/año</span></div>
+  <p class="lead" style="margin:0 auto 26px;text-align:center">de ahorro estimado, sin CAPEX en sensores nuevos.</p>
+  <div class="grid3" style="max-width:880px;margin:0 auto">
+    <div class="blk bar-green"><h3 style="color:var(--green)">CAPEX bajo</h3><p>Software sobre la infraestructura de sensores existente.</p></div>
+    <div class="blk bar-blue"><h3>Payback rápido</h3><p>Un solo fallo grande evitado cubre meses de operación.</p></div>
+    <div class="blk bar-amber"><h3>Escala</h3><p>El mismo sistema cubre toda la flota, máquina a máquina.</p></div>
+  </div>
+</section>
+
+<!-- 9 · DIFERENCIACIÓN -->
+<section class="slide">
+  <div class="eyebrow">Por qué este enfoque</div>
+  <h2>Nuestra <span>ventaja</span></h2>
+  <div class="grid2">
+    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">Cero hardware</div><h3>Despliegue sin obra</h3><p>No instalamos sensores ni paramos la máquina: leemos las señales que ya existen.</p></div>
+    <div class="blk bar-blue"><div class="blk-label">Arranque por capas</div><h3>Valor desde el día 1</h3><p>El nivel 1 ya protege solo. Cada capa añade confianza, no es todo o nada.</p></div>
+    <div class="blk bar-violet"><div class="blk-label" style="color:var(--violet)">Aprende en planta</div><h3>Mejora con tus datos</h3><p>El modelo se reentrena con la operación real de cada máquina. Más uso, más precisión.</p></div>
+    <div class="blk bar-amber"><div class="blk-label" style="color:var(--amber)">Transparente</div><h3>Decisiones explicables</h3><p>Cada alarma viene con su causa. El responsable sabe qué revisar y por qué.</p></div>
+  </div>
+</section>
+
+<!-- 10 · MERCADO -->
+<section class="slide">
+  <div class="eyebrow">A quién sirve</div>
+  <h2>Probado en <span>máquina real</span></h2>
+  <p class="lead" style="margin-bottom:24px">Validado sobre una flota real de <span class="hl">11 máquinas</span> de distintos tipos, con un año completo de datos de operación.</p>
+  <div class="grid3">
+    <div class="blk bar-blue"><div class="blk-label">Fresadoras CNC</div><h3>3, 4 y 5 ejes</h3><p>El núcleo del proyecto: desgaste, sobreesfuerzo y temperatura.</p></div>
+    <div class="blk bar-teal"><div class="blk-label" style="color:var(--teal)">Tornos</div><h3>Mecanizado de revolución</h3><p>Mismas señales eléctricas y mecánicas, mismo sistema.</p></div>
+    <div class="blk bar-violet"><div class="blk-label" style="color:var(--violet)">EDM</div><h3>Electroerosión</h3><p>Cubierto por la capa de vigilancia eléctrica.</p></div>
+  </div>
+  <p class="sub" style="margin-top:22px">Cualquier taller con máquina-herramienta y sensores básicos es un cliente potencial: el sistema se adapta al parque existente.</p>
+</section>
+
+<!-- 11 · ROADMAP -->
+<section class="slide">
+  <div class="eyebrow">Despliegue</div>
+  <h2>Del piloto a <span>la planta</span></h2>
+  <p class="sub" style="margin-bottom:18px">Una ruta de adopción de bajo riesgo: empezar pequeño, demostrar ahorro, escalar.</p>
+  <div class="road">
+    <div class="rstep"><div class="rn">FASE 1</div><div class="rt">Piloto</div><div class="rd">Una máquina crítica. Conectar señales y calibrar el sistema con su historial.</div></div>
+    <div class="rstep"><div class="rn">FASE 2</div><div class="rt">Validar</div><div class="rd">Medir fallos evitados y falsas alarmas reales. Cuantificar el ahorro.</div></div>
+    <div class="rstep"><div class="rn">FASE 3</div><div class="rt">Escalar</div><div class="rd">Extender a la flota. Reentrenamiento incremental por máquina.</div></div>
+    <div class="rstep"><div class="rn">FASE 4</div><div class="rt">Integrar</div><div class="rd">Órdenes de trabajo automáticas al sistema de mantenimiento (MES/CMMS).</div></div>
+  </div>
+  <p class="callout" style="margin-top:24px">Riesgo controlado: la inversión se justifica con datos de tu propia planta antes de escalar.</p>
+</section>
+
+<!-- 12 · CIERRE / CTA -->
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="eyebrow" style="margin-left:auto;margin-right:auto">En una frase</div>
+  <div style="font-size:36px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:-1px;line-height:1.15;margin:10px 0 30px">
+    Un fallo detectado a tiempo<br><em style="font-style:normal;color:var(--fire)">vale más</em> que mil reportes.
+  </div>
+  <div class="stats" style="justify-content:center">
+    <div class="stat green"><div class="num">6,9 M€</div><div class="lbl">Ahorro/año</div></div>
+    <div class="stat green"><div class="num">85 %</div><div class="lbl">Menos coste</div></div>
+    <div class="stat"><div class="num">0</div><div class="lbl">Hardware nuevo</div></div>
+  </div>
+  <h1 style="font-size:64px;margin-top:34px">¿<em style="display:inline">Hablamos</em>?</h1>
+  <div style="width:60px;height:3px;background:linear-gradient(90deg,var(--rust),var(--fire));margin:28px auto 0"></div>
+</section>
+
+<div class="secnum" id="secnum">01 / 12</div>
+<div class="hint" id="hint">← → para navegar</div>
+<div class="controls"><span class="counter"><b id="cur">1</b> / <span id="tot">12</span></span><button class="nav-btn" id="prev">‹</button><button class="nav-btn" id="next">›</button></div>
+</div></div>
+<script>
+  const deck=document.querySelector('.deck');
+  function fit(){ const k=Math.min(window.innerWidth/1280,window.innerHeight/720); deck.style.transform='translate(-50%,-50%) scale('+k+')'; }
+  window.addEventListener('resize',fit); fit();
+  const slides=Array.from(document.querySelectorAll('.slide'));
+  let i=0; const total=slides.length; document.getElementById('tot').textContent=total;
+  const secnames=['Inicio','El problema','Tres formas','Solución','Cómo funciona','Resultados','Caso de negocio','ROI','Ventaja','Mercado','Despliegue','Cierre'];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function animateNum(el){ const raw=el.dataset.raw||(el.dataset.raw=el.textContent.trim()); const m=raw.match(/^(\D*)(\d+(?:[.,]\d+)?)(.*)$/); if(!m){el.textContent=raw;return;} const pre=m[1],ns=m[2],suf=m[3]; const dec=(ns.split(/[.,]/)[1]||'').length; const sep=ns.includes(',')?',':'.'; const target=parseFloat(ns.replace(',','.')); if(reduce){el.textContent=raw;return;} const dur=750,t0=performance.now(); (function f(t){let p=Math.min(1,(t-t0)/dur);p=1-Math.pow(1-p,3);el.textContent=pre+(target*p).toFixed(dec).replace('.',sep)+suf;if(p<1)requestAnimationFrame(f);})(performance.now()); }
+  function enhance(slide){ slide.querySelectorAll('.stat .num, .hero-num .n').forEach(animateNum); if(!reduce) slide.querySelectorAll('.cbar').forEach(b=>{const w=b.style.width;b.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.width=w));}); }
+  function show(n){ i=Math.max(0,Math.min(total-1,n)); slides.forEach((s,j)=>s.classList.toggle('active',j===i)); document.getElementById('cur').textContent=i+1; document.getElementById('progress').style.width=((i+1)/total*100)+'%'; const num=String(i+1).padStart(2,'0'); document.getElementById('secnum').textContent=num+' · '+(secnames[i]||'').toUpperCase(); document.getElementById('hint').style.opacity=(i===0)?'1':'0'; enhance(slides[i]); }
+  document.getElementById('next').onclick=()=>show(i+1); document.getElementById('prev').onclick=()=>show(i-1);
+  document.addEventListener('keydown',e=>{ if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);} if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1);} if(e.key==='Home')show(0); if(e.key==='End')show(total-1); });
+  let x0=null; document.addEventListener('touchstart',e=>x0=e.touches[0].clientX); document.addEventListener('touchend',e=>{ if(x0===null)return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>50)show(i+(dx<0?1:-1)); x0=null; });
+  show(0);
+</script>
+</body>
+</html>
