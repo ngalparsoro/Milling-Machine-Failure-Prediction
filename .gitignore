@@ -9,6 +9,10 @@ data/raw/cnc_extracted/
 data/processed/*.parquet
 data/processed/spark_tec
 
+# Plots/resúmenes generados por los notebooks (regenerables)
+data/processed/*.png
+data/processed/spark_tec_anomaly_summary.csv
+
 # Python
 __pycache__/
 *.pyc
