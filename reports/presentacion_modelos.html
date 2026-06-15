@@ -422,18 +422,6 @@
   </div>
 </section>
 
-<!-- 13 · CONCLUSIONES -->
-<section class="slide">
-  <h2>Qué <span>demuestra</span></h2>
-  <div class="grid2">
-    <div class="blk bar-green"><div class="blk-label" style="color:var(--green)">Resultado</div><h3>Modelo de producción sólido</h3><p>Stacking LGBM+RF: Recall 0,853 · F1 0,906 · AUC 0,978 sobre test independiente. Alto recall con mínimas falsas alarmas (2/2000).</p></div>
-    <div class="blk bar-blue"><div class="blk-label">Arquitectura</div><h3>Sistema por capas real</h3><p>Integra 4 fuentes con degradación elegante; útil desde la Capa 1, replica la operativa de planta.</p></div>
-    <div class="blk bar-amber"><div class="blk-label" style="color:var(--amber)">Límite honesto</div><h3>~2 % TWF irreducibles</h3><p>Sin trazabilidad de herramienta, esos fallos no tienen señal. Reconocerlo &gt; sobreajustar.</p></div>
-    <div class="blk bar-violet"><div class="blk-label" style="color:var(--violet)">Criterio</div><h3>No sobre-vender</h3><p>Solo la Capa 3 (test n=2000) tiene métricas fiables; se distingue con rigor qué es comparable y qué no.</p></div>
-  </div>
-  <p class="sub" style="margin-top:18px">Stack: scikit-learn · LightGBM · XGBoost · Optuna · SHAP · pandas. Notebooks por fase (01→07) + código en <code>src/</code>.</p>
-</section>
-
 <!-- 14 · CIERRE -->
 <section class="slide" style="text-align:center;align-items:center">
   <div style="font-size:32px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:-1px;line-height:1.15;margin:10px 0 32px">
@@ -444,7 +432,7 @@
   <p class="sub" style="margin-top:22px">Capa 3 · F1 0,906 · Recall 0,853 · AUC 0,978 · umbral 0,9858</p>
 </section>
 
-<div class="secnum" id="secnum">01 / 15</div>
+<div class="secnum" id="secnum">01 / 14</div>
 <div class="hint" id="hint">← → para navegar</div>
 <div class="controls"><span class="counter"><b id="cur">1</b> / <span id="tot">14</span></span><button class="nav-btn" id="prev">‹</button><button class="nav-btn" id="next">›</button></div>
 </div></div>
@@ -454,8 +442,8 @@
   window.addEventListener('resize',fit); fit();
   const slides=Array.from(document.querySelectorAll('.slide'));
   let i=0; const total=slides.length; document.getElementById('tot').textContent=total;
-  const secnames=['Inicio','Problemática','Estructura','Capa 1 · SPARK','Capa 2 · CNC','Capa 3 · AI4I','Capa 3 · fallos','Capa 3 · features','Capa 3 · modelado','Evaluación','Análisis de error','Tool tracking','Honestidad','Conclusiones','Cierre'];
-  const seccolors=['var(--fire)','var(--fire)','var(--fire)','var(--blue)','var(--teal)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--fire)','var(--fire)','var(--fire)'];
+  const secnames=['Inicio','Problemática','Estructura','Capa 1 · SPARK','Capa 2 · CNC','Capa 3 · AI4I','Capa 3 · fallos','Capa 3 · features','Capa 3 · modelado','Evaluación','Análisis de error','Tool tracking','Honestidad','Cierre'];
+  const seccolors=['var(--fire)','var(--fire)','var(--fire)','var(--blue)','var(--teal)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--gold)','var(--fire)','var(--fire)'];
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function animateNum(el){ const raw=el.dataset.raw||(el.dataset.raw=el.textContent.trim()); const m=raw.match(/^(\D*)(\d+(?:[.,]\d+)?)(.*)$/); if(!m){el.textContent=raw;return;} const pre=m[1],ns=m[2],suf=m[3]; const dec=(ns.split(/[.,]/)[1]||'').length; const sep=ns.includes(',')?',':'.'; const target=parseFloat(ns.replace(',','.')); if(reduce){el.textContent=raw;return;} const dur=720,t0=performance.now(); (function f(t){let p=Math.min(1,(t-t0)/dur);p=1-Math.pow(1-p,3);el.textContent=pre+(target*p).toFixed(dec).replace('.',sep)+suf;if(p<1)requestAnimationFrame(f);})(performance.now()); }
   function enhance(s){ s.querySelectorAll('.stat .num').forEach(animateNum); if(!reduce) s.querySelectorAll('.sbar,.cbar').forEach(b=>{const w=b.style.width;b.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.width=w));}); }
